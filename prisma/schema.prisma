@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  email     String   @unique
+  name      String
+
+  roleWork  String?
+  projects  String?
+
+  subscriptionStatus String   @default("free")
+  stripeCustomerId   String?
+
+  taskBreakdownsToday Int      @default(0)
+  lastBreakdownReset  DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
+}
+
+model Task {
+  id            String    @id @default(uuid())
+  userId        String
+  user          UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  originalText  String
+  clarification String?
+
+  status        String   @default("active")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  completedAt   DateTime?
+
+  steps TaskStep[]
+
+  @@index([userId, status])
+}
+
+model TaskStep {
+  id          String    @id @default(uuid())
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  text        String
+  order       Int
+
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([taskId, order])
+}
