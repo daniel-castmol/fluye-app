@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ taskId: string }> }
+  { params }: { params: { taskId: string } }
 ) {
   const supabase = await createClient();
   const {
@@ -15,7 +15,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { taskId } = await params;
+  const { taskId } = params;
 
   const profile = await prisma.userProfile.findUnique({
     where: { userId: user.id },

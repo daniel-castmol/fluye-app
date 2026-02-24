@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ taskId: string; stepId: string }> }
+  { params }: { params: { taskId: string; stepId: string } }
 ) {
   const supabase = await createClient();
   const {
@@ -15,7 +15,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { taskId, stepId } = await params;
+  const { taskId, stepId } = params;
   const body = await request.json();
   const { completed } = body;
 
@@ -40,7 +40,7 @@ export async function PATCH(
   }
 
   const step = await prisma.taskStep.update({
-    where: { id: stepId, taskId: taskId },
+    where: { id: stepId },
     data: {
       completed,
       completedAt: completed ? new Date() : null,
