@@ -5,8 +5,10 @@ export interface UserProfile {
   name: string;
   roleWork: string | null;
   projects: string | null;
+  preferredLanguage: string;
   subscriptionStatus: string;
   taskBreakdownsToday: number;
+  clarifyRequestsToday: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,7 +24,8 @@ export interface TaskStep {
 
 export interface Task {
   id: string;
-  userId: string;
+  // profileId references UserProfile.id (NOT Supabase auth user ID)
+  profileId: string;
   originalText: string;
   clarification: string | null;
   status: string;

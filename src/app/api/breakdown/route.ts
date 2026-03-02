@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
+import { isNewDay } from "@/lib/utils";
+import { BreakdownResponseSchema } from "@/lib/schemas";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -67,23 +69,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const now = new Date();
-  const lastReset = new Date(profile.lastBreakdownReset);
-  const isNewDay =
-    now.toDateString() !== lastReset.toDateString();
-
+  // Reset breakdown counter if it's a new day (UTC)
   let currentCount = profile.taskBreakdownsToday;
-  if (isNewDay) {
+  if (isNewDay(profile.lastBreakdownReset)) {
     currentCount = 0;
     await prisma.userProfile.update({
       where: { id: profile.id },
-      data: { taskBreakdownsToday: 0, lastBreakdownReset: now },
+      data: { taskBreakdownsToday: 0, lastBreakdownReset: new Date() },
     });
   }
 
+  // Enforce daily limit: 10/day free, 999999/day pro
   if (profile.subscriptionStatus === "free" && currentCount >= 10) {
     return NextResponse.json(
-      { error: "Daily limit reached. Upgrade to Pro for unlimited breakdowns." },
+      { error: "Daily limit reached (10/day). Upgrade to Pro for unlimited breakdowns." },
       { status: 429 }
     );
   }
@@ -136,23 +135,33 @@ Return ONLY valid JSON:
   ]
 }`
     );
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
 
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return NextResponse.json(
-        { error: "Failed to parse AI response" },
+        { error: "Failed to parse AI response. Please try again." },
         { status: 500 }
       );
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    // Validate AI response shape with Zod
+    const result = BreakdownResponseSchema.safeParse(JSON.parse(jsonMatch[0]));
+    if (!result.success) {
+      console.warn("[breakdown] Zod validation failed:", result.error.issues);
+      return NextResponse.json(
+        { error: "AI response was malformed. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    const parsed = result.data;
 
     const createdTasks = await Promise.all(
       parsed.tasks.map(
-        async (task: { original: string; context: string; steps: string[] }) => {
+        async (task) => {
           const created = await prisma.task.create({
             data: {
-              userId: profile.id,
+              profileId: profile.id,
               originalText: task.original,
               clarification: JSON.stringify({
                 context: task.context,

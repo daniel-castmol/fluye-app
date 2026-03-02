@@ -21,7 +21,7 @@ export async function GET() {
   }
 
   const tasks = await prisma.task.findMany({
-    where: { userId: profile.id, status: "active" },
+    where: { profileId: profile.id, status: "active" },
     include: { steps: { orderBy: { order: "asc" } } },
     orderBy: { createdAt: "desc" },
   });
@@ -48,7 +48,7 @@ export async function DELETE() {
   }
 
   await prisma.task.updateMany({
-    where: { userId: profile.id, status: "active" },
+    where: { profileId: profile.id, status: "active" },
     data: { status: "archived" },
   });
 

@@ -86,4 +86,24 @@ npm run dev
 
 ---
 
+## Limits
+
+| Tier | Task Breakdowns | Clarify Requests |
+|------|----------------|------------------|
+| Free | 10/day | 20/day |
+| Pro  | Unlimited | Unlimited |
+
+---
+
 ## Built for the Vibe Coding Hackathon 2026 — by Daniel Castillo (solo)
+
+---
+
+## Changelog
+
+### V2 (In Progress)
+- Fixed clarify rate limiting to use database (was in-memory, broke on serverless cold start)
+- Added Zod validation for all AI responses
+- Renamed `Task.userId` → `Task.profileId` for clarity
+- Added `preferredLanguage` to user profiles (EN/ES support coming)
+- Aligned documentation to match actual limits (10 breakdowns/day, 20 clarify/day)

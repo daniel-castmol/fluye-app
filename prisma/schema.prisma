@@ -13,14 +13,24 @@ model UserProfile {
   email     String   @unique
   name      String
 
+  // Context for AI personalization
   roleWork  String?
   projects  String?
 
+  // Language preference: "en" | "es"
+  preferredLanguage String @default("en")
+
+  // Subscription
   subscriptionStatus String   @default("free")
   stripeCustomerId   String?
 
+  // Rate limiting — task breakdowns
   taskBreakdownsToday Int      @default(0)
   lastBreakdownReset  DateTime @default(now())
+
+  // Rate limiting — clarify requests
+  clarifyRequestsToday Int     @default(0)
+  lastClarifyReset     DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -29,37 +39,38 @@ model UserProfile {
 }
 
 model Task {
-  id            String    @id @default(uuid())
-  userId        String
-  user          UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String      @id @default(uuid())
+  // profileId references UserProfile.id (NOT Supabase auth user ID)
+  profileId String
+  profile   UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   originalText  String
   clarification String?
 
-  status        String   @default("active")
+  status String @default("active")
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  completedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
 
   steps TaskStep[]
 
-  @@index([userId, status])
+  @@index([profileId, status])
 }
 
 model TaskStep {
-  id          String    @id @default(uuid())
-  taskId      String
-  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  text        String
-  order       Int
+  text  String
+  order Int
 
   completed   Boolean   @default(false)
   completedAt DateTime?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([taskId, order])
 }

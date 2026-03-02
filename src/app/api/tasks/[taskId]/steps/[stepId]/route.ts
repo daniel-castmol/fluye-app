@@ -32,7 +32,7 @@ export async function PATCH(
   }
 
   const task = await prisma.task.findFirst({
-    where: { id: taskId, userId: profile.id },
+    where: { id: taskId, profileId: profile.id },
   });
 
   if (!task) {
