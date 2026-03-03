@@ -131,16 +131,30 @@ ArchivedTaskList fetches /api/tasks?status=archived lazily on tab open
 
 ---
 
-## What's Next (Week 3 — User Growth)
-Suggested tasks in priority order:
+## What's Next (Session 4 — Phase 2 Improvements)
 
-1. **Onboarding improvements** — animated welcome flow, skip option, progress indicator
-2. **Task sharing** — generate a public read-only link for a task breakdown
-3. **Pro upgrade flow** — Stripe integration stub (stripeCustomerId already on schema)
-4. **Performance** — optimistic UI for step toggle (currently network-dependent), debounce
-5. **PWA / mobile** — manifest.json, service worker for offline access
-6. **Email recap** — weekly summary of completed tasks via Supabase Edge Functions
-7. **Analytics** — PostHog event tracking (task created, step completed, language used)
+### Immediate fixes (from user feedback — do first):
+1. **Language switcher in navbar** — decouple language from profile; in-app `EN|ES` toggle that syncs to profile in background; detect browser language on landing page
+2. **EmptyState as universal input** — always show hero+chips when adding a task, not just first run (remove `TaskInput` or relegate it)
+3. **Edit Profile** — navbar option to update name, role, projects, language without going through full onboarding again
+4. **Completed Tasks tab** — when last step of a task is checked, auto-transition to `status: "completed"`; add 3rd tab (Active | Completed | Archived); add "Reopen" button; **requires DB migration**
+5. **Context-aware example chips** — generate 4 chips via AI on first load, cache per profile in localStorage; refresh when profile changes (nice-to-have, do after tab work)
+
+### Technical debt (mitigate immediately in session 4):
+- Extract `"gemini-flash-latest"` to a shared constant (duplicated in 3 routes)
+- Extract shared `TaskForm` from `TaskInput`/`EmptyState` (near-identical code)
+- Add `toast.error(t.errors.restoreFailed)` to `ArchivedTaskList` restore error handler
+- `ArchivedTaskList` re-fetches on every tab open — add simple timestamp-based cache invalidation
+
+### Also in session 4:
+- Set up test users workflow (owner is out of test email addresses — need guidance on email aliases, temp mail services, or Supabase test user seeding)
+
+### Future (Week 3+ proper):
+- Task sharing — public read-only link
+- Pro upgrade flow — Stripe integration
+- PWA / mobile — manifest.json, service worker
+- Email recap — weekly summary via Supabase Edge Functions
+- Analytics — PostHog event tracking
 
 ---
 
