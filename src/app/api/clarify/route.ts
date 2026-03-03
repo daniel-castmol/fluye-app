@@ -92,18 +92,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const contextInfo = `User context: ${profile.name}. Role: ${profile.roleWork || "Not specified"}. Current projects: ${profile.projects || "Not specified"}.`;
+  const lang = profile.preferredLanguage === "es" ? "es" : "en";
+
+  // Language-aware system prompts and user prompts
+  const systemInstructions = {
+    en: `You help people with ADHD break down vague tasks into concrete steps. You are empathetic but efficient. User context: ${profile.name}. Role: ${profile.roleWork || "Not specified"}. Current projects: ${profile.projects || "Not specified"}.`,
+    es: `Ayudas a personas con TDAH a descomponer tareas vagas en pasos concretos. Eres empático pero eficiente. Contexto del usuario: ${profile.name}. Rol: ${profile.roleWork || "No especificado"}. Proyectos actuales: ${profile.projects || "No especificado"}.`,
+  };
+  const userPrompts = {
+    en: `I need to do the following:\n\n"${taskInput}"\n\nGenerate 2-3 short, specific clarifying questions to help me break this down better. Questions should be about specific problems, goals, or constraints. Keep questions concise.\n\nReturn ONLY valid JSON: { "questions": ["question1", "question2", "question3"] }`,
+    es: `Necesito hacer lo siguiente:\n\n"${taskInput}"\n\nGenera 2-3 preguntas cortas y específicas para ayudarme a desglosar esto mejor. Las preguntas deben ser sobre problemas, objetivos o restricciones específicas. Mantén las preguntas concisas.\n\nDevuelve SOLO JSON válido: { "questions": ["pregunta1", "pregunta2", "pregunta3"] }`,
+  };
 
   try {
     const model = genAI.getGenerativeModel({
       model: "gemini-flash-latest",
-      systemInstruction: `You help people with ADHD break down vague tasks into concrete steps. You are empathetic but efficient. ${contextInfo}`,
+      systemInstruction: systemInstructions[lang],
     });
 
-    const text = await callGeminiWithRetry(
-      model,
-      `I need to do the following:\n\n"${taskInput}"\n\nGenerate 2-3 short, specific clarifying questions to help me break this down better. Questions should be about specific problems, goals, or constraints. Keep questions concise.\n\nReturn ONLY valid JSON: { "questions": ["question1", "question2", "question3"] }`
-    );
+    const text = await callGeminiWithRetry(model, userPrompts[lang]);
 
     // Increment counter regardless of parse outcome (the AI was called)
     await prisma.userProfile.update({

@@ -97,25 +97,36 @@ export async function POST(request: Request) {
       .join("\n\n");
   }
 
-  try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
-      systemInstruction: `You are a task breakdown assistant for people with ADHD. You are precise, empathetic, and action-oriented.
+  const lang = profile.preferredLanguage === "es" ? "es" : "en";
+
+  // Language-aware system prompts and user prompts
+  const systemInstructions = {
+    en: `You are a task breakdown assistant for people with ADHD. You are precise, empathetic, and action-oriented.
 
 User context:
 - Name: ${profile.name}
 - Role: ${profile.roleWork || "Not specified"}
 - Projects: ${profile.projects || "Not specified"}`,
-    });
+    es: `Eres un asistente de descomposición de tareas para personas con TDAH. Eres preciso, empático y orientado a la acción.
 
-    const text = await callGeminiWithRetry(
-      model,
-      `Break down the following tasks into concrete, achievable steps.
+Contexto del usuario:
+- Nombre: ${profile.name}
+- Rol: ${profile.roleWork || "No especificado"}
+- Proyectos: ${profile.projects || "No especificado"}`,
+  };
+
+  const clarificationLabel = lang === "es" ? "Aclaraciones" : "Clarifications";
+  const noClarificationLabel = lang === "es"
+    ? "Sin aclaración proporcionada - usa tu mejor criterio."
+    : "No clarification provided - use your best judgment.";
+
+  const userPrompts = {
+    en: `Break down the following tasks into concrete, achievable steps.
 
 Original tasks:
 "${taskInput}"
 
-${clarificationContext ? `Clarifications:\n${clarificationContext}` : "No clarification provided - use your best judgment."}
+${clarificationContext ? `Clarifications:\n${clarificationContext}` : noClarificationLabel}
 
 Rules:
 - Each step must start with an actionable verb and include specific detail
@@ -133,8 +144,40 @@ Return ONLY valid JSON:
       "steps": ["step 1", "step 2", "step 3"]
     }
   ]
-}`
-    );
+}`,
+    es: `Descompón las siguientes tareas en pasos concretos y alcanzables.
+
+Tareas originales:
+"${taskInput}"
+
+${clarificationContext ? `${clarificationLabel}:\n${clarificationContext}` : noClarificationLabel}
+
+Reglas:
+- Cada paso debe comenzar con un verbo de acción e incluir un detalle específico
+- Cada paso debe ser completable en 5-30 minutos
+- Usa el contexto técnico del usuario cuando sea relevante
+- Ordena los pasos lógicamente
+- 3-5 pasos por tarea
+
+Devuelve SOLO JSON válido:
+{
+  "tasks": [
+    {
+      "original": "texto de la tarea original",
+      "context": "lo que entendiste sobre esta tarea",
+      "steps": ["paso 1", "paso 2", "paso 3"]
+    }
+  ]
+}`,
+  };
+
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-flash-latest",
+      systemInstruction: systemInstructions[lang],
+    });
+
+    const text = await callGeminiWithRetry(model, userPrompts[lang]);
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {

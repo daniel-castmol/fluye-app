@@ -4,14 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle } from "lucide-react";
+import type { Translations } from "@/lib/i18n";
 
 interface ClarificationChatProps {
+  t: Translations;
   questions: string[];
   onSubmit: (answers: string[]) => void;
   onSkip: () => void;
 }
 
 export default function ClarificationChat({
+  t,
   questions,
   onSubmit,
   onSkip,
@@ -41,11 +44,9 @@ export default function ClarificationChat({
         </div>
         <div>
           <h2 className="text-xl font-bold text-[#F8FAFC]">
-            I need a bit more context
+            {t.clarification.title}
           </h2>
-          <p className="text-[#94A3B8] text-xs">
-            Answer what you can — skip the rest
-          </p>
+          <p className="text-[#94A3B8] text-xs">{t.clarification.subtitle}</p>
         </div>
       </div>
 
@@ -61,7 +62,7 @@ export default function ClarificationChat({
             <Input
               value={answers[index]}
               onChange={(e) => updateAnswer(index, e.target.value)}
-              placeholder="Type your answer..."
+              placeholder={t.clarification.placeholder}
               className="bg-[#0F172A] border-[#334155] text-[#F8FAFC] placeholder:text-[#94A3B8]/40"
             />
           </div>
@@ -74,13 +75,13 @@ export default function ClarificationChat({
             onClick={onSkip}
             className="flex-1 h-12 border-[#334155] text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#334155]/50 rounded-xl"
           >
-            Skip
+            {t.clarification.skip}
           </Button>
           <Button
             type="submit"
             className="flex-[2] h-12 bg-[#86EFAC] text-[#0F172A] font-bold hover:bg-emerald-400 transition-all duration-300 rounded-xl"
           >
-            Break It Down →
+            {t.clarification.button}
           </Button>
         </div>
       </form>

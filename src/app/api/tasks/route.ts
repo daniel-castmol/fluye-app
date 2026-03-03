@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -20,8 +20,12 @@ export async function GET() {
     return NextResponse.json({ tasks: [] });
   }
 
+  // Support ?status=archived to fetch archived tasks
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get("status") === "archived" ? "archived" : "active";
+
   const tasks = await prisma.task.findMany({
-    where: { profileId: profile.id, status: "active" },
+    where: { profileId: profile.id, status },
     include: { steps: { orderBy: { order: "asc" } } },
     orderBy: { createdAt: "desc" },
   });

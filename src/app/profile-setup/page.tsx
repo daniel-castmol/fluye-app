@@ -12,6 +12,7 @@ export default function ProfileSetupPage() {
   const [name, setName] = useState("");
   const [roleWork, setRoleWork] = useState("");
   const [projects, setProjects] = useState("");
+  const [preferredLanguage, setPreferredLanguage] = useState<"en" | "es">("en");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -23,7 +24,7 @@ export default function ProfileSetupPage() {
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), roleWork, projects }),
+        body: JSON.stringify({ name: name.trim(), roleWork, projects, preferredLanguage }),
       });
 
       if (res.ok) {
@@ -91,6 +92,35 @@ export default function ProfileSetupPage() {
               rows={3}
               className="bg-[#0F172A] border-[#334155] text-[#F8FAFC] placeholder:text-[#94A3B8]/50 resize-none"
             />
+          </div>
+
+          {/* Language preference selector */}
+          <div className="space-y-2">
+            <Label className="text-[#F8FAFC]">Preferred Language</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPreferredLanguage("en")}
+                className={`flex items-center justify-center gap-2 h-11 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                  preferredLanguage === "en"
+                    ? "border-[#86EFAC]/60 bg-[#86EFAC]/10 text-[#86EFAC]"
+                    : "border-[#334155] text-[#94A3B8] hover:border-[#334155]/80 hover:text-[#F8FAFC]"
+                }`}
+              >
+                🇺🇸 English
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreferredLanguage("es")}
+                className={`flex items-center justify-center gap-2 h-11 rounded-xl border text-sm font-medium transition-all duration-200 ${
+                  preferredLanguage === "es"
+                    ? "border-[#86EFAC]/60 bg-[#86EFAC]/10 text-[#86EFAC]"
+                    : "border-[#334155] text-[#94A3B8] hover:border-[#334155]/80 hover:text-[#F8FAFC]"
+                }`}
+              >
+                🇨🇱 Español
+              </button>
+            </div>
           </div>
 
           <Button
