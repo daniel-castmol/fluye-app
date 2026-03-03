@@ -1,34 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
-async function callGeminiWithRetry(
-  model: GenerativeModel,
-  prompt: string,
-  retries = 2
-): Promise<string> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (err: unknown) {
-      const isTransient =
-        err instanceof Error &&
-        (err.message.includes("503") ||
-          err.message.includes("overloaded") ||
-          err.message.includes("ServiceUnavailable"));
-      if (isTransient && attempt < retries) {
-        await new Promise((r) => setTimeout(r, 2000));
-        continue;
-      }
-      throw err;
-    }
-  }
-  throw new Error("Max retries exceeded");
-}
+import { genAI, GEMINI_MODEL, callGeminiWithRetry } from "@/lib/gemini";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -146,7 +119,7 @@ Reglas:
 
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-flash-latest",
+      model: GEMINI_MODEL,
       systemInstruction: systemInstructions[lang],
     });
 

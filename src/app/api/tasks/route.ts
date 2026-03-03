@@ -20,9 +20,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ tasks: [] });
   }
 
-  // Support ?status=archived to fetch archived tasks
+  // Support ?status=archived|completed to fetch non-active tasks
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get("status") === "archived" ? "archived" : "active";
+  const rawStatus = searchParams.get("status");
+  const status =
+    rawStatus === "archived" ? "archived" : rawStatus === "completed" ? "completed" : "active";
 
   const tasks = await prisma.task.findMany({
     where: { profileId: profile.id, status },

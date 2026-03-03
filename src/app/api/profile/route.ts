@@ -19,6 +19,42 @@ export async function GET() {
   return NextResponse.json({ profile });
 }
 
+export async function PUT(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { name, roleWork, projects, preferredLanguage } = body;
+
+  // At least one field must be present
+  if (name !== undefined && (typeof name !== "string" || name.length === 0 || name.length > 100)) {
+    return NextResponse.json({ error: "Invalid name" }, { status: 400 });
+  }
+
+  const lang =
+    preferredLanguage === "es" ? "es" : preferredLanguage === "en" ? "en" : undefined;
+
+  // Build update payload from provided fields only (partial update)
+  const data: Record<string, unknown> = {};
+  if (name !== undefined) data.name = name.trim();
+  if (roleWork !== undefined) data.roleWork = roleWork?.slice(0, 500) || null;
+  if (projects !== undefined) data.projects = projects?.slice(0, 500) || null;
+  if (lang !== undefined) data.preferredLanguage = lang;
+
+  const profile = await prisma.userProfile.update({
+    where: { userId: user.id },
+    data,
+  });
+
+  return NextResponse.json({ profile });
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {

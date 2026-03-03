@@ -4,13 +4,14 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Task, UserProfile } from "@/types";
-import { getTranslations } from "@/lib/i18n";
+import { getTranslations, type Language } from "@/lib/i18n";
 import AppNavbar from "./AppNavbar";
+import EditProfileModal from "./EditProfileModal";
 import EmptyState from "./EmptyState";
-import TaskInput from "./TaskInput";
 import ClarificationChat from "./ClarificationChat";
 import TaskList from "./TaskList";
 import ArchivedTaskList from "./ArchivedTaskList";
+import CompletedTaskList, { invalidateCompletedCache } from "./CompletedTaskList";
 
 type AppStep = "input" | "clarifying" | "loading" | "tasks";
 
@@ -21,13 +22,38 @@ interface AppShellProps {
 
 export default function AppShell({ profile, initialTasks }: AppShellProps) {
   const router = useRouter();
-  const t = getTranslations(profile.preferredLanguage);
+
+  // Language state lives here so the toggle re-renders all children immediately.
+  // Background-synced to profile so the preference persists across sessions.
+  const [language, setLanguage] = useState<Language>(
+    (profile.preferredLanguage as Language) || "en"
+  );
+  const t = getTranslations(language);
+
+  // Profile name tracked in state so Edit Profile updates navbar immediately
+  const [profileName, setProfileName] = useState(profile.name);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+  const handleLanguageChange = useCallback(
+    async (lang: Language) => {
+      setLanguage(lang);
+      // Fire-and-forget — we don't block the UI on this
+      fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferredLanguage: lang }),
+      }).catch(() => {
+        // Ignore sync errors; the in-session language change is already applied
+      });
+    },
+    []
+  );
 
   const [step, setStep] = useState<AppStep>(
     initialTasks.length > 0 ? "tasks" : "input"
   );
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "completed" | "archived">("active");
   const [taskInput, setTaskInput] = useState("");
   const [questions, setQuestions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +171,14 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
           description: completedTaskName,
           duration: 3000,
         });
+        // Remove from active list and invalidate completed cache so the
+        // Completed tab shows it on next open
+        setTasks((prev) => {
+          const remaining = prev.filter((t) => t.id !== taskId);
+          if (remaining.length === 0) setStep("input");
+          return remaining;
+        });
+        invalidateCompletedCache();
       }
 
       try {
@@ -245,6 +279,25 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
     setActiveTab("active");
   }, []);
 
+  const handleTaskReopened = useCallback((task: Task) => {
+    // Unchecking all steps so it's actionable again
+    const reopened = {
+      ...task,
+      steps: task.steps.map((s) => ({ ...s, completed: false })),
+    };
+    setTasks((prev) => [reopened, ...prev]);
+    setStep("tasks");
+    setActiveTab("active");
+  }, []);
+
+  const handleProfileSaved = useCallback(
+    ({ name, preferredLanguage }: { name: string; preferredLanguage: Language }) => {
+      setProfileName(name);
+      setLanguage(preferredLanguage);
+    },
+    []
+  );
+
   const handleSignOut = useCallback(async () => {
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
@@ -255,7 +308,21 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-[#0F172A]">
-      <AppNavbar profileName={profile.name} onSignOut={handleSignOut} />
+      <AppNavbar
+        profileName={profileName}
+        language={language}
+        onLanguageChange={handleLanguageChange}
+        onEditProfile={() => setEditProfileOpen(true)}
+        onSignOut={handleSignOut}
+      />
+
+      <EditProfileModal
+        t={t}
+        profile={{ ...profile, name: profileName, preferredLanguage: language }}
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+        onSaved={handleProfileSaved}
+      />
 
       <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
         {error && (
@@ -264,12 +331,8 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
           </div>
         )}
 
-        {step === "input" && tasks.length === 0 && (
+        {step === "input" && (
           <EmptyState t={t} onSubmit={handleTaskSubmit} />
-        )}
-
-        {step === "input" && tasks.length > 0 && (
-          <TaskInput t={t} onSubmit={handleTaskSubmit} />
         )}
 
         {step === "clarifying" && (
@@ -315,6 +378,17 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("completed")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  activeTab === "completed"
+                    ? "bg-[#334155] text-[#F8FAFC] shadow-sm"
+                    : "text-[#94A3B8] hover:text-[#F8FAFC]"
+                }`}
+              >
+                {t.tabs.completed}
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("archived")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                   activeTab === "archived"
@@ -335,6 +409,13 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
                 onTaskDelete={handleTaskDelete}
                 onClearAll={handleClearAll}
                 onAddMore={handleAddMore}
+              />
+            )}
+
+            {activeTab === "completed" && (
+              <CompletedTaskList
+                t={t}
+                onTaskReopened={handleTaskReopened}
               />
             )}
 
