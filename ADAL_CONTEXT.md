@@ -1,5 +1,5 @@
 # Fluye Webapp — AdaL Session Context
-**Last updated:** 2026-03-02  
+**Last updated:** 2026-03-03  
 **Branch:** `main`  
 **Owner:** personal project — ADHD-focused AI task breakdown app
 
@@ -114,7 +114,7 @@ ArchivedTaskList fetches /api/tasks?status=archived lazily on tab open
 
 ---
 
-## What Was Built (V2 — Sessions 1-3)
+## What Was Built (V2 — Sessions 1-4)
 
 ### Week 1 — Security & Foundation ✅
 - Renamed `Task.userId` → `Task.profileId` (now correctly references UserProfile.id)
@@ -129,25 +129,32 @@ ArchivedTaskList fetches /api/tasks?status=archived lazily on tab open
 - **Task 8:** EmptyState — hero screen for first-time users with example task chips
 - **Task 9:** Archive/Tabs — Active/Archived tab bar, lazy-loaded `ArchivedTaskList`, restore endpoint
 
+### Session 5 — Phase 2 Complete ✅ (2026-03-03)
+**Tech debt:**
+- Extracted `src/lib/gemini.ts` — `GEMINI_MODEL` constant, `genAI` singleton, `callGeminiWithRetry` shared across all 3 AI routes (~84 lines of duplication removed)
+- Extracted `src/components/app/TaskForm.tsx` — shared textarea+button form used by `TaskInput` and `EmptyState`
+- Added `toast.error(t.errors.restoreFailed)` to `ArchivedTaskList`
+- Added 30s module-level cache to `ArchivedTaskList`
+
+**Features:**
+- **Language switcher** — EN|ES pill toggle in navbar, language state in AppShell, background-synced to profile via `PUT /api/profile`
+- **Edit Profile modal** — shadcn Dialog, profile name clickable in navbar (UserCog), updates name+language state immediately, full i18n
+- **EmptyState as universal input** — always shown when `step === "input"`, `TaskInput` removed from AppShell flow
+- **Completed Tasks tab** — `CompletedTaskList` with cache, Active|Completed|Archived tabs, Reopen button, no DB migration needed (status field already supported it)
+
 ---
 
-## What's Next (Session 4 — Phase 2 Improvements)
+## What's Next (Session 6)
 
-### Immediate fixes (from user feedback — do first):
-1. **Language switcher in navbar** — decouple language from profile; in-app `EN|ES` toggle that syncs to profile in background; detect browser language on landing page
-2. **EmptyState as universal input** — always show hero+chips when adding a task, not just first run (remove `TaskInput` or relegate it)
-3. **Edit Profile** — navbar option to update name, role, projects, language without going through full onboarding again
-4. **Completed Tasks tab** — when last step of a task is checked, auto-transition to `status: "completed"`; add 3rd tab (Active | Completed | Archived); add "Reopen" button; **requires DB migration**
-5. **Context-aware example chips** — generate 4 chips via AI on first load, cache per profile in localStorage; refresh when profile changes (nice-to-have, do after tab work)
+### Phase 2 Complete ✅
+All Phase 2 items delivered. See above for full session log.
 
-### Technical debt (mitigate immediately in session 4):
-- Extract `"gemini-flash-latest"` to a shared constant (duplicated in 3 routes)
-- Extract shared `TaskForm` from `TaskInput`/`EmptyState` (near-identical code)
-- Add `toast.error(t.errors.restoreFailed)` to `ArchivedTaskList` restore error handler
-- `ArchivedTaskList` re-fetches on every tab open — add simple timestamp-based cache invalidation
-
-### Also in session 4:
-- Set up test users workflow (owner is out of test email addresses — need guidance on email aliases, temp mail services, or Supabase test user seeding)
+### Phase 3 (Week 3+):
+- Task sharing — public read-only link
+- Pro upgrade flow — Stripe integration
+- PWA / mobile — manifest.json, service worker
+- Email recap — weekly summary via Supabase Edge Functions
+- Analytics — PostHog event tracking
 
 ### Future (Week 3+ proper):
 - Task sharing — public read-only link

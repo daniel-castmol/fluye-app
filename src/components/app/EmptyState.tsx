@@ -1,17 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import TaskForm from "@/components/app/TaskForm";
 import type { Translations } from "@/lib/i18n";
 
+const CACHE_KEY = "fluye_example_chips";
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface ChipCache {
+  chips: string[];
+  profileId: string;
+  cachedAt: number;
+}
+
+/** Call this after saving profile (role/projects changed) to force fresh chips. */
+export function invalidateChipsCache() {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {
+    // ignore storage errors
+  }
+}
+
 interface EmptyStateProps {
   t: Translations;
   onSubmit: (input: string) => void;
+  /** Used to key the localStorage chip cache — re-fetches when profile changes. */
+  profileId: string;
 }
 
-export default function EmptyState({ t, onSubmit }: EmptyStateProps) {
+export default function EmptyState({ t, onSubmit, profileId }: EmptyStateProps) {
   const [input, setInput] = useState("");
+  // Start with static fallback chips so the UI is never empty
+  const [chips, setChips] = useState<string[]>(t.empty.exampleList);
+  const [loadingChips, setLoadingChips] = useState(false);
+
+  useEffect(() => {
+    // Check localStorage cache first
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cached: ChipCache = JSON.parse(raw);
+        const isValid =
+          cached.profileId === profileId &&
+          Date.now() - cached.cachedAt < CACHE_TTL_MS;
+        if (isValid) {
+          setChips(cached.chips);
+          return;
+        }
+      }
+    } catch {
+      // ignore parse errors — fall through to fetch
+    }
+
+    // Fetch personalised chips from the API
+    setLoadingChips(true);
+    fetch("/api/example-chips")
+      .then((res) => res.json())
+      .then(({ chips: fetched }: { chips: string[] }) => {
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          setChips(fetched);
+          const cache: ChipCache = {
+            chips: fetched,
+            profileId,
+            cachedAt: Date.now(),
+          };
+          localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+        }
+      })
+      .catch(() => {
+        // Keep static fallback chips on network/parse failure
+      })
+      .finally(() => setLoadingChips(false));
+  }, [profileId]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,18 +121,29 @@ export default function EmptyState({ t, onSubmit }: EmptyStateProps) {
         <p className="text-center text-xs text-[#94A3B8]/60 mb-3">
           {t.empty.exampleTasks}
         </p>
-        <div className="flex flex-wrap gap-2 justify-center">
-          {t.empty.exampleList.map((example, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => handleExampleClick(example)}
-              className="px-3 py-1.5 rounded-lg border border-[#334155] bg-[#1E293B]/40 text-[#94A3B8] text-xs hover:border-[#86EFAC]/40 hover:text-[#F8FAFC] hover:bg-[#334155]/50 transition-all duration-150 text-left"
-            >
-              {example}
-            </button>
-          ))}
-        </div>
+        {loadingChips ? (
+          <div className="flex flex-wrap gap-2 justify-center">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-7 w-44 rounded-lg bg-[#1E293B]/60 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2 justify-center">
+            {chips.map((example, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => handleExampleClick(example)}
+                className="px-3 py-1.5 rounded-lg border border-[#334155] bg-[#1E293B]/40 text-[#94A3B8] text-xs hover:border-[#86EFAC]/40 hover:text-[#F8FAFC] hover:bg-[#334155]/50 transition-all duration-150 text-left"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

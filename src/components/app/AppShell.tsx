@@ -7,7 +7,7 @@ import type { Task, UserProfile } from "@/types";
 import { getTranslations, type Language } from "@/lib/i18n";
 import AppNavbar from "./AppNavbar";
 import EditProfileModal from "./EditProfileModal";
-import EmptyState from "./EmptyState";
+import EmptyState, { invalidateChipsCache } from "./EmptyState";
 import ClarificationChat from "./ClarificationChat";
 import TaskList from "./TaskList";
 import ArchivedTaskList from "./ArchivedTaskList";
@@ -294,6 +294,9 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
     ({ name, preferredLanguage }: { name: string; preferredLanguage: Language }) => {
       setProfileName(name);
       setLanguage(preferredLanguage);
+      // Role/projects may have changed — bust the chip cache so EmptyState
+      // fetches fresh context-aware suggestions on next open
+      invalidateChipsCache();
     },
     []
   );
@@ -332,7 +335,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         )}
 
         {step === "input" && (
-          <EmptyState t={t} onSubmit={handleTaskSubmit} />
+          <EmptyState t={t} onSubmit={handleTaskSubmit} profileId={profile.id} />
         )}
 
         {step === "clarifying" && (
