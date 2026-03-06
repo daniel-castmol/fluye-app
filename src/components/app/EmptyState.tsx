@@ -28,9 +28,12 @@ interface EmptyStateProps {
   onSubmit: (input: string) => void;
   /** Used to key the localStorage chip cache — re-fetches when profile changes. */
   profileId: string;
+  /** When provided, shows a cancel button to return to the task list. */
+  onCancel?: () => void;
+  language?: string;
 }
 
-export default function EmptyState({ t, onSubmit, profileId }: EmptyStateProps) {
+export default function EmptyState({ t, onSubmit, profileId, onCancel, language }: EmptyStateProps) {
   const [input, setInput] = useState("");
   // Start with static fallback chips so the UI is never empty
   const [chips, setChips] = useState<string[]>(t.empty.exampleList);
@@ -54,9 +57,10 @@ export default function EmptyState({ t, onSubmit, profileId }: EmptyStateProps) 
       // ignore parse errors — fall through to fetch
     }
 
-    // Fetch personalised chips from the API
+    // Fetch personalised chips from the API (pass language so chips are in the right language)
     setLoadingChips(true);
-    fetch("/api/example-chips")
+    const langParam = language ? `?language=${language}` : "";
+    fetch(`/api/example-chips${langParam}`)
       .then((res) => res.json())
       .then(({ chips: fetched }: { chips: string[] }) => {
         if (Array.isArray(fetched) && fetched.length > 0) {
@@ -91,6 +95,17 @@ export default function EmptyState({ t, onSubmit, profileId }: EmptyStateProps) 
 
   return (
     <div className="w-full">
+      {/* Cancel button — shown when user came from the task list */}
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mb-6 text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-colors duration-150"
+        >
+          {t.empty.cancelButton}
+        </button>
+      )}
+
       {/* Hero header */}
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full border border-[#86EFAC]/20 bg-[#86EFAC]/5 text-[#86EFAC] text-xs font-medium">

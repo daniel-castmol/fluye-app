@@ -9,7 +9,7 @@ export const translations = {
   en: {
     taskInput: {
       title: "What do you need to do today?",
-      placeholder: "Fix segments dataset\nCreate PoP for business metrics\nStart Iceberg table",
+      placeholder: "Finish the project presentation\nSet up the development environment\nReview team feedback",
       tip: "Be vague if you want — I'll ask questions to help clarify.",
       button: "Get Clarity →",
     },
@@ -23,6 +23,7 @@ export const translations = {
     taskList: {
       title: "Your Tasks",
       subtitle: "Concrete & Achievable",
+      taskCrushed: "Task crushed!",
       addMore: "Add More",
       clearAll: "Clear All",
       clearConfirmTitle: "Clear all tasks?",
@@ -46,11 +47,12 @@ export const translations = {
       subtitle: "Paste your vague to-do here. I'll ask a few questions, then break it into concrete steps.",
       exampleButton: "Try an example",
       exampleTasks: "Need inspiration? Try one:",
+      cancelButton: "← Back to tasks",
       exampleList: [
-        "Write a blog post about our new product launch",
-        "Set up CI/CD for the backend microservice",
-        "Prepare slides for the team retrospective",
-        "Debug the memory leak in the data pipeline",
+        "Finish the project presentation for next week",
+        "Set up CI/CD for the backend service",
+        "Prepare slides for the team meeting",
+        "Review and fix the failing tests",
       ],
     },
     editProfile: {
@@ -110,7 +112,7 @@ export const translations = {
   es: {
     taskInput: {
       title: "¿Qué tarea tienes en mente?",
-      placeholder: "Arreglar dataset de segmentos\nCrear PoP para métricas de negocio\nIniciar tabla Iceberg",
+      placeholder: "Terminar la presentación del proyecto\nConfigurar el entorno de desarrollo\nRevisar el feedback del equipo",
       tip: "Escribe tu tarea aquí, te haré algunas preguntas y luego la descompondré en pasos concretos.",
       button: "Dame Claridad →",
     },
@@ -124,6 +126,7 @@ export const translations = {
     taskList: {
       title: "Tus Tareas",
       subtitle: "Concretas y Alcanzables",
+      taskCrushed: "¡Estás arrasando!",
       addMore: "Agregar Más",
       clearAll: "Limpiar Todo",
       clearConfirmTitle: "¿Limpiar todas las tareas?",
@@ -147,11 +150,12 @@ export const translations = {
       subtitle: "Pega tu tarea vaga aquí. Te haré algunas preguntas, luego la descompondré en pasos concretos.",
       exampleButton: "Probar un ejemplo",
       exampleTasks: "¿Necesitas inspiración? Prueba una:",
+      cancelButton: "← Volver a tareas",
       exampleList: [
-        "Escribir un post sobre el lanzamiento de nuestro nuevo producto",
-        "Configurar CI/CD para el microservicio backend",
-        "Preparar slides para la retrospectiva del equipo",
-        "Depurar la fuga de memoria en el pipeline de datos",
+        "Terminar la presentación del proyecto para la próxima semana",
+        "Configurar CI/CD para el servicio backend",
+        "Preparar slides para la reunión del equipo",
+        "Revisar y corregir los tests fallidos",
       ],
     },
     editProfile: {
@@ -177,7 +181,7 @@ export const translations = {
       archived: "Archivadas",
     },
     completedList: {
-      empty: "Aún no hay tareas completadas. ¡Aplasta algunas tareas! 💪",
+      empty: "Aún no hay tareas completadas. ¡Estás arrasando! 💪",
       reopenTask: "Reabrir",
       reopenFailed: "Error al reabrir la tarea. Inténtalo de nuevo.",
       stepsLabel: "pasos completados",

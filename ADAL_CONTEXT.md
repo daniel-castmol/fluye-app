@@ -147,7 +147,19 @@ ArchivedTaskList fetches /api/tasks?status=archived lazily on tab open
 ## What's Next (Session 6)
 
 ### Phase 2 Complete ✅
-All Phase 2 items delivered. See above for full session log.
+All Phase 2 items delivered. See session 5 log above.
+
+### Testing Setup (done via guidance)
+- Test users: use Gmail `+` aliases (`email+test1@gmail.com`) — each creates a separate Supabase user
+- Rate limits: bump email rate limit in Supabase Dashboard → Authentication → Rate Limits during testing
+- No Google Cloud changes needed for magic link auth
+
+### Phase 3 (Week 3+):
+- Task sharing — public read-only link
+- Pro upgrade flow — Stripe integration
+- PWA / mobile — manifest.json, service worker
+- Email recap — weekly summary via Supabase Edge Functions
+- Analytics — PostHog event tracking
 
 ### Phase 3 (Week 3+):
 - Task sharing — public read-only link

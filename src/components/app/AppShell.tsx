@@ -168,7 +168,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
       });
 
       if (justCompleted) {
-        toast.success("Task crushed!", {
+        toast.success(t.taskList.taskCrushed, {
           description: completedTaskName,
           duration: 3000,
         });
@@ -336,7 +336,13 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         )}
 
         {step === "input" && (
-          <EmptyState t={t} onSubmit={handleTaskSubmit} profileId={profile.id} />
+          <EmptyState
+            t={t}
+            onSubmit={handleTaskSubmit}
+            profileId={profile.id}
+            language={language}
+            onCancel={tasks.length > 0 ? () => setStep("tasks") : undefined}
+          />
         )}
 
         {step === "clarifying" && (
