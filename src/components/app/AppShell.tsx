@@ -49,9 +49,9 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
     []
   );
 
-  const [step, setStep] = useState<AppStep>(
-    initialTasks.length > 0 ? "tasks" : "input"
-  );
+  // Always start in "tasks" so the tab bar is always accessible.
+  // The active tab shows EmptyState inline when there are no active tasks.
+  const [step, setStep] = useState<AppStep>("tasks");
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [activeTab, setActiveTab] = useState<"active" | "completed" | "archived">("active");
   const [taskInput, setTaskInput] = useState("");
@@ -174,11 +174,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         });
         // Remove from active list and invalidate completed cache so the
         // Completed tab shows it on next open
-        setTasks((prev) => {
-          const remaining = prev.filter((t) => t.id !== taskId);
-          if (remaining.length === 0) setStep("input");
-          return remaining;
-        });
+        setTasks((prev) => prev.filter((t) => t.id !== taskId));
         invalidateCompletedCache();
       }
 
@@ -208,11 +204,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
   );
 
   const handleTaskDelete = useCallback(async (taskId: string) => {
-    setTasks((prev) => {
-      const remaining = prev.filter((t) => t.id !== taskId);
-      if (remaining.length === 0) setStep("input");
-      return remaining;
-    });
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
     try {
       await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
     } catch {
@@ -341,7 +333,6 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
             onSubmit={handleTaskSubmit}
             profileId={profile.id}
             language={language}
-            onCancel={tasks.length > 0 ? () => setStep("tasks") : undefined}
           />
         )}
 
@@ -411,15 +402,24 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
             </div>
 
             {activeTab === "active" && (
-              <TaskList
-                t={t}
-                tasks={tasks}
-                onStepToggle={handleStepToggle}
-                onStepRegenerate={handleStepRegenerate}
-                onTaskDelete={handleTaskDelete}
-                onClearAll={handleClearAll}
-                onAddMore={handleAddMore}
-              />
+              tasks.length === 0 ? (
+                <EmptyState
+                  t={t}
+                  onSubmit={handleTaskSubmit}
+                  profileId={profile.id}
+                  language={language}
+                />
+              ) : (
+                <TaskList
+                  t={t}
+                  tasks={tasks}
+                  onStepToggle={handleStepToggle}
+                  onStepRegenerate={handleStepRegenerate}
+                  onTaskDelete={handleTaskDelete}
+                  onClearAll={handleClearAll}
+                  onAddMore={handleAddMore}
+                />
+              )
             )}
 
             {activeTab === "completed" && (

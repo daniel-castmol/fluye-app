@@ -11,6 +11,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 interface ChipCache {
   chips: string[];
   profileId: string;
+  language: string;
   cachedAt: number;
 }
 
@@ -47,6 +48,7 @@ export default function EmptyState({ t, onSubmit, profileId, onCancel, language 
         const cached: ChipCache = JSON.parse(raw);
         const isValid =
           cached.profileId === profileId &&
+          cached.language === (language ?? "en") &&
           Date.now() - cached.cachedAt < CACHE_TTL_MS;
         if (isValid) {
           setChips(cached.chips);
@@ -68,6 +70,7 @@ export default function EmptyState({ t, onSubmit, profileId, onCancel, language 
           const cache: ChipCache = {
             chips: fetched,
             profileId,
+            language: language ?? "en",
             cachedAt: Date.now(),
           };
           localStorage.setItem(CACHE_KEY, JSON.stringify(cache));

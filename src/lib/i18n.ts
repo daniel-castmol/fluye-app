@@ -181,7 +181,7 @@ export const translations = {
       archived: "Archivadas",
     },
     completedList: {
-      empty: "Aún no hay tareas completadas. ¡Estás arrasando! 💪",
+      empty: "¡Vamos! Avancemos en nuestros proyectos 💪",
       reopenTask: "Reabrir",
       reopenFailed: "Error al reabrir la tarea. Inténtalo de nuevo.",
       stepsLabel: "pasos completados",
