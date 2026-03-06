@@ -68,7 +68,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         const res = await fetch("/api/clarify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ taskInput: input }),
+          body: JSON.stringify({ taskInput: input, language }),
         });
 
         const data = await res.json();
@@ -106,6 +106,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
             questions: qs,
             answers,
             skipClarification: skip,
+            language,
           }),
         });
 

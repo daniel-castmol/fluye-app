@@ -109,9 +109,9 @@ export const translations = {
   },
   es: {
     taskInput: {
-      title: "¿Qué necesitas hacer hoy?",
+      title: "¿Qué tarea tienes en mente?",
       placeholder: "Arreglar dataset de segmentos\nCrear PoP para métricas de negocio\nIniciar tabla Iceberg",
-      tip: "Sé vago si quieres — te haré preguntas para aclarar.",
+      tip: "Escribe tu tarea aquí, te haré algunas preguntas y luego la descompondré en pasos concretos.",
       button: "Dame Claridad →",
     },
     clarification: {
@@ -196,16 +196,16 @@ export const translations = {
       signIn: "Iniciar Sesión",
       badge: "Presentando Fluye para TDAH",
       headline1: "Mata la Parálisis.",
-      headline2: "Divide la Tarea.",
-      subtitle: "Tu TDAH no necesita otro \"planificador\". Necesita un traductor. Convertimos tus vagas tareas pendientes en victorias de 5 minutos—automáticamente.",
+      headline2: "Ataca la Tarea.",
+      subtitle: "Tu TDAH no necesita otro \"planificador\", necesita un traductor. Convertimos tu confusión en pasos claros.",
       ctaPrimary: "Empieza Gratis",
       ctaSecondary: "Cómo Funciona",
-      feature1Title: "De Vago a Claro",
-      feature1Desc: "Transforma \"Arreglar el proyecto\" en una hoja de ruta paso a paso.",
+      feature1Title: "De Confuso a Claro",
+      feature1Desc: "Transforma tu proyecto en una hoja de ruta paso a paso.",
       feature2Title: "Sin Fricción al Empezar",
       feature2Desc: "No pienses en cómo empezar. Solo empieza.",
       feature3Title: "Descarga Cognitiva",
-      feature3Desc: "Ahorra tu energía mental para crear, no para listar.",
+      feature3Desc: "Ahorra tu energía mental para crear, no para planificar...",
     },
   },
 }

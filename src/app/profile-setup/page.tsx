@@ -7,6 +7,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+const setupTranslations = {
+  en: {
+    title: "Tell me a bit about yourself",
+    subtitle: "This helps me understand your tasks and give better breakdowns",
+    nameLabel: "Name",
+    roleLabel: "Role / Work",
+    projectsLabel: "Current Projects",
+    projectsOptional: "(optional)",
+    languageLabel: "Preferred Language",
+    continueBtn: "Continue →",
+    settingUp: "Setting up...",
+  },
+  es: {
+    title: "Cuéntame sobre ti",
+    subtitle: "Esto me ayuda a entender tus tareas y darte una mejor descomposición",
+    nameLabel: "Nombre",
+    roleLabel: "Rol / Trabajo",
+    projectsLabel: "Proyectos Actuales",
+    projectsOptional: "(opcional)",
+    languageLabel: "Lenguaje preferido",
+    continueBtn: "Continuar →",
+    settingUp: "Configurando...",
+  },
+};
+
 export default function ProfileSetupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -14,6 +39,8 @@ export default function ProfileSetupPage() {
   const [projects, setProjects] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<"en" | "es">("en");
   const [loading, setLoading] = useState(false);
+
+  const t = setupTranslations[preferredLanguage];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +68,10 @@ export default function ProfileSetupPage() {
 
       <div className="relative z-10 w-full max-w-lg">
         <h1 className="text-2xl font-bold text-[#F8FAFC] text-center mb-2">
-          Tell me a bit about yourself
+          {t.title}
         </h1>
         <p className="text-[#94A3B8] text-sm text-center mb-8">
-          This helps me understand your tasks and give better breakdowns
+          {t.subtitle}
         </p>
 
         <form
@@ -53,7 +80,7 @@ export default function ProfileSetupPage() {
         >
           <div className="space-y-2">
             <Label htmlFor="name" className="text-[#F8FAFC]">
-              Name
+              {t.nameLabel}
             </Label>
             <Input
               id="name"
@@ -67,7 +94,7 @@ export default function ProfileSetupPage() {
 
           <div className="space-y-2">
             <Label htmlFor="roleWork" className="text-[#F8FAFC]">
-              Role / Work
+              {t.roleLabel}
             </Label>
             <Textarea
               id="roleWork"
@@ -81,8 +108,8 @@ export default function ProfileSetupPage() {
 
           <div className="space-y-2">
             <Label htmlFor="projects" className="text-[#F8FAFC]">
-              Current Projects{" "}
-              <span className="text-[#94A3B8] text-xs">(optional)</span>
+              {t.projectsLabel}{" "}
+              <span className="text-[#94A3B8] text-xs">{t.projectsOptional}</span>
             </Label>
             <Textarea
               id="projects"
@@ -94,9 +121,9 @@ export default function ProfileSetupPage() {
             />
           </div>
 
-          {/* Language preference selector */}
+          {/* Language preference selector — labels update instantly when toggled */}
           <div className="space-y-2">
-            <Label className="text-[#F8FAFC]">Preferred Language</Label>
+            <Label className="text-[#F8FAFC]">{t.languageLabel}</Label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -128,7 +155,7 @@ export default function ProfileSetupPage() {
             disabled={loading || !name.trim()}
             className="w-full h-12 bg-[#86EFAC] text-[#0F172A] font-bold hover:bg-emerald-400 transition-all duration-300"
           >
-            {loading ? "Setting up..." : "Continue →"}
+            {loading ? t.settingUp : t.continueBtn}
           </Button>
         </form>
       </div>

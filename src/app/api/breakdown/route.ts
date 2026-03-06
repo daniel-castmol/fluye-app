@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { taskInput, questions, answers, skipClarification } = body;
+  const { taskInput, questions, answers, skipClarification, language: bodyLanguage } = body;
 
   if (!taskInput || typeof taskInput !== "string" || taskInput.length > 2000) {
     return NextResponse.json({ error: "Invalid task input" }, { status: 400 });
@@ -70,7 +70,10 @@ export async function POST(request: Request) {
       .join("\n\n");
   }
 
-  const lang = profile.preferredLanguage === "es" ? "es" : "en";
+  // Use language from request body (reflects current in-session toggle) with DB as fallback
+  const lang = (bodyLanguage === "es" || profile.preferredLanguage === "es") && bodyLanguage !== "en"
+    ? "es"
+    : "en";
 
   // Language-aware system prompts and user prompts
   const systemInstructions = {

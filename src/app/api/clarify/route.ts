@@ -5,11 +5,18 @@ import { isNewDay } from "@/lib/utils";
 import { ClarifyResponseSchema } from "@/lib/schemas";
 import { genAI, GEMINI_MODEL, callGeminiWithRetry } from "@/lib/gemini";
 
-const CLARIFY_FALLBACK_QUESTIONS = [
-  "What specific outcome are you trying to achieve?",
-  "What's the first thing that comes to mind when you think about starting?",
-  "Are there any blockers or dependencies?",
-];
+const CLARIFY_FALLBACK_QUESTIONS = {
+  en: [
+    "What specific outcome are you trying to achieve?",
+    "What's the first thing that comes to mind when you think about starting?",
+    "Are there any blockers or dependencies?",
+  ],
+  es: [
+    "¿Qué resultado específico quieres lograr?",
+    "¿Qué es lo primero que se te viene a la mente cuando piensas en empezar?",
+    "¿Hay algún bloqueo o dependencia que debas tener en cuenta?",
+  ],
+};
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -22,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { taskInput } = body;
+  const { taskInput, language: bodyLanguage } = body;
 
   if (!taskInput || typeof taskInput !== "string" || taskInput.length > 2000) {
     return NextResponse.json({ error: "Invalid task input" }, { status: 400 });
@@ -65,7 +72,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const lang = profile.preferredLanguage === "es" ? "es" : "en";
+  // Use language from request body (reflects current in-session toggle) with DB as fallback
+  const lang = (bodyLanguage === "es" || profile.preferredLanguage === "es") && bodyLanguage !== "en"
+    ? "es"
+    : "en";
 
   // Language-aware system prompts and user prompts
   const systemInstructions = {
@@ -94,13 +104,13 @@ export async function POST(request: Request) {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.warn("[clarify] No JSON found in AI response, using fallback");
-      return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS });
+      return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS[lang] });
     }
 
     const result = ClarifyResponseSchema.safeParse(JSON.parse(jsonMatch[0]));
     if (!result.success) {
       console.warn("[clarify] Zod validation failed:", result.error.issues);
-      return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS });
+      return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS[lang] });
     }
 
     return NextResponse.json({ questions: result.data.questions });
