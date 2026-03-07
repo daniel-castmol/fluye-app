@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import useSWR from "swr";
 import { toast } from "sonner";
 import type { Task } from "@/types";
 import type { Translations } from "@/lib/i18n";
@@ -12,45 +13,17 @@ interface ArchivedTaskListProps {
   onTaskRestored: (task: Task) => void;
 }
 
-/**
- * Module-level cache: avoids re-fetching on every tab switch.
- * Invalidated after CACHE_TTL_MS (30 s) so new archives appear promptly.
- */
-const CACHE_TTL_MS = 30_000;
-let cachedTasks: Task[] | null = null;
-let cacheTimestamp = 0;
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ArchivedTaskList({ t, onTaskRestored }: ArchivedTaskListProps) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, error, isLoading, mutate } = useSWR("/api/tasks?status=archived", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
+
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
-  // Fetch archived tasks when the tab becomes visible, using a short-lived cache
-  useEffect(() => {
-    async function fetchArchived() {
-      // Serve from cache if still fresh
-      if (cachedTasks && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
-        setTasks(cachedTasks);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const res = await fetch("/api/tasks?status=archived");
-        if (res.ok) {
-          const data = await res.json();
-          const fetched: Task[] = data.tasks ?? [];
-          cachedTasks = fetched;
-          cacheTimestamp = Date.now();
-          setTasks(fetched);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchArchived();
-  }, []);
+  const tasks: Task[] = data?.tasks ?? [];
 
   const handleRestore = useCallback(
     async (taskId: string) => {
@@ -62,10 +35,10 @@ export default function ArchivedTaskList({ t, onTaskRestored }: ArchivedTaskList
           return;
         }
         const { task } = await res.json();
-        // Invalidate cache so the next archive-tab open is fresh
-        cachedTasks = null;
-        // Remove from archived list + bubble up to parent
-        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+        
+        // Optimistically update the SWR cache
+        mutate({ tasks: tasks.filter((t) => t.id !== taskId) }, false);
+        
         onTaskRestored(task);
       } catch {
         toast.error(t.errors.restoreFailed);
@@ -73,10 +46,10 @@ export default function ArchivedTaskList({ t, onTaskRestored }: ArchivedTaskList
         setRestoringId(null);
       }
     },
-    [onTaskRestored, t.errors.restoreFailed]
+    [onTaskRestored, t.errors.restoreFailed, tasks, mutate]
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-16">
         <div className="w-8 h-8 rounded-full border-2 border-[#334155] border-t-[#86EFAC] animate-spin" />
@@ -84,7 +57,7 @@ export default function ArchivedTaskList({ t, onTaskRestored }: ArchivedTaskList
     );
   }
 
-  if (tasks.length === 0) {
+  if (tasks.length === 0 || error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <p className="text-[#94A3B8] text-sm">{t.taskList.archivedEmpty}</p>
@@ -115,6 +88,14 @@ export default function ArchivedTaskList({ t, onTaskRestored }: ArchivedTaskList
                 </h3>
                 <p className="text-xs text-[#94A3B8]/50 mt-1">
                   {completedSteps}/{totalSteps} {t.taskList.stepsLabel}
+                  {task.steps.some(s => s.durationEstimate) && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded-md bg-[#334155]/40 text-[#86EFAC]/40 text-[10px] font-medium border border-[#86EFAC]/5">
+                      {task.steps.reduce((acc, s) => {
+                        const match = s.durationEstimate?.match(/(\d+)/);
+                        return acc + (match ? parseInt(match[0]) : 0);
+                      }, 0)}m total
+                    </span>
+                  )}
                 </p>
                 {/* Mini progress bar */}
                 <div className="w-full h-1 bg-[#334155]/40 rounded-full overflow-hidden mt-2">

@@ -4,6 +4,51 @@ import { NextResponse } from "next/server";
 import { isNewDay } from "@/lib/utils";
 import { BreakdownResponseSchema } from "@/lib/schemas";
 import { genAI, GEMINI_MODEL, callGeminiWithRetry } from "@/lib/gemini";
+import { SchemaType, Schema } from "@google/generative-ai";
+
+const breakdownSchema: Schema = {
+  description: "A list of tasks broken down into concrete steps",
+  type: SchemaType.OBJECT,
+  properties: {
+    tasks: {
+      type: SchemaType.ARRAY,
+      description: "Tasks broken down into steps",
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          original: {
+            type: SchemaType.STRING,
+            description: "Original task text",
+          },
+          context: {
+            type: SchemaType.STRING,
+            description: "A short context summary about this task",
+          },
+          steps: {
+            type: SchemaType.ARRAY,
+            description: "3-5 concrete steps",
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                text: {
+                  type: SchemaType.STRING,
+                  description: "Specific actionable step",
+                },
+                duration_estimate: {
+                  type: SchemaType.STRING,
+                  description: "Time estimate (e.g., '10m', '25m')",
+                },
+              },
+              required: ["text", "duration_estimate"],
+            },
+          },
+        },
+        required: ["original", "context", "steps"],
+      },
+    },
+  },
+  required: ["tasks"],
+};
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -110,17 +155,7 @@ Rules:
 - Use the user's technical context when relevant
 - Order steps logically
 - 3-5 steps per task
-
-Return ONLY valid JSON:
-{
-  "tasks": [
-    {
-      "original": "original task text",
-      "context": "what you understood about this task",
-      "steps": ["step 1", "step 2", "step 3"]
-    }
-  ]
-}`,
+- Provide a duration estimate (e.g., '10m', '25m') for each step`,
     es: `Descompón las siguientes tareas en pasos concretos y alcanzables.
 
 Tareas originales:
@@ -134,37 +169,23 @@ Reglas:
 - Usa el contexto técnico del usuario cuando sea relevante
 - Ordena los pasos lógicamente
 - 3-5 pasos por tarea
-
-Devuelve SOLO JSON válido:
-{
-  "tasks": [
-    {
-      "original": "texto de la tarea original",
-      "context": "lo que entendiste sobre esta tarea",
-      "steps": ["paso 1", "paso 2", "paso 3"]
-    }
-  ]
-}`,
+- Proporciona una estimación de duración (ej., '10m', '25m') para cada paso`,
   };
 
   try {
     const model = genAI.getGenerativeModel({
       model: GEMINI_MODEL,
       systemInstruction: systemInstructions[lang],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: breakdownSchema,
+      },
     });
 
     const text = await callGeminiWithRetry(model, userPrompts[lang]);
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return NextResponse.json(
-        { error: "Failed to parse AI response. Please try again." },
-        { status: 500 }
-      );
-    }
-
     // Validate AI response shape with Zod
-    const result = BreakdownResponseSchema.safeParse(JSON.parse(jsonMatch[0]));
+    const result = BreakdownResponseSchema.safeParse(JSON.parse(text));
     if (!result.success) {
       console.warn("[breakdown] Zod validation failed:", result.error.issues);
       return NextResponse.json(
@@ -188,9 +209,10 @@ Devuelve SOLO JSON válido:
                 answers,
               }),
               steps: {
-                create: task.steps.map((step: string, index: number) => ({
-                  text: step,
+                create: task.steps.map((step, index: number) => ({
+                  text: step.text,
                   order: index,
+                  durationEstimate: step.duration_estimate,
                 })),
               },
             },

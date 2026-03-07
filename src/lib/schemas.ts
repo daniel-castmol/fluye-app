@@ -19,7 +19,12 @@ export const BreakdownResponseSchema = z.object({
         original: z.string().min(1).max(500),
         context: z.string().min(1).max(1000),
         steps: z
-          .array(z.string().min(5).max(500))
+          .array(
+            z.object({
+              text: z.string().min(5).max(500),
+              duration_estimate: z.string().min(2).max(20), // e.g., "10m", "25m"
+            })
+          )
           .min(1)
           .max(8),
       })

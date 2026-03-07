@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import type { Task, UserProfile } from "@/types";
 import { getTranslations, type Language } from "@/lib/i18n";
 import AppNavbar from "./AppNavbar";
@@ -11,7 +12,7 @@ import EmptyState, { invalidateChipsCache } from "./EmptyState";
 import ClarificationChat from "./ClarificationChat";
 import TaskList from "./TaskList";
 import ArchivedTaskList from "./ArchivedTaskList";
-import CompletedTaskList, { invalidateCompletedCache } from "./CompletedTaskList";
+import CompletedTaskList from "./CompletedTaskList";
 
 type AppStep = "input" | "clarifying" | "loading" | "tasks";
 
@@ -33,6 +34,10 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
   // Profile name tracked in state so Edit Profile updates navbar immediately
   const [profileName, setProfileName] = useState(profile.name);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+
+  // Progression tracking in state for immediate UI feedback
+  const [totalTasksCompleted, setTotalTasksCompleted] = useState(profile.totalTasksCompleted);
+  const [currentStreak, setCurrentStreak] = useState(profile.currentStreak);
 
   const handleLanguageChange = useCallback(
     async (lang: Language) => {
@@ -175,15 +180,23 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         // Remove from active list and invalidate completed cache so the
         // Completed tab shows it on next open
         setTasks((prev) => prev.filter((t) => t.id !== taskId));
-        invalidateCompletedCache();
+        mutate("/api/tasks?status=completed");
       }
 
       try {
-        await fetch(`/api/tasks/${taskId}/steps/${stepId}`, {
+        const res = await fetch(`/api/tasks/${taskId}/steps/${stepId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ completed }),
         });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profileStats) {
+            setTotalTasksCompleted(data.profileStats.totalTasksCompleted);
+            setCurrentStreak(data.profileStats.currentStreak);
+          }
+        }
       } catch {
         // Roll back optimistic update on failure
         setTasks((prev) =>
@@ -307,6 +320,8 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
       <AppNavbar
         profileName={profileName}
         language={language}
+        currentStreak={currentStreak}
+        totalTasksCompleted={totalTasksCompleted}
         onLanguageChange={handleLanguageChange}
         onEditProfile={() => setEditProfileOpen(true)}
         onSignOut={handleSignOut}

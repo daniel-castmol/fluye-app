@@ -2,6 +2,29 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { genAI, GEMINI_MODEL, callGeminiWithRetry } from "@/lib/gemini";
+import { SchemaType, Schema } from "@google/generative-ai";
+import { z } from "zod";
+
+const regenerateStepSchema: Schema = {
+  description: "A single regenerated task step",
+  type: SchemaType.OBJECT,
+  properties: {
+    text: {
+      type: SchemaType.STRING,
+      description: "Specific actionable step",
+    },
+    duration_estimate: {
+      type: SchemaType.STRING,
+      description: "Time estimate (e.g., '10m', '25m')",
+    },
+  },
+  required: ["text", "duration_estimate"],
+};
+
+const RegenerateResponseSchema = z.object({
+  text: z.string().min(5).max(500),
+  duration_estimate: z.string().min(2).max(20),
+});
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -98,7 +121,7 @@ Rules:
 - Be specific and concrete (avoid vague language)
 - Should be completable in 5–30 minutes
 - Single step only (no sub-bullets or multiple sentences)
-- Return ONLY the new step text — no quotes, no explanation`,
+- Provide a duration estimate (e.g., '10m', '25m')`,
     es: `Reescribe el siguiente paso para que sea más claro, específico y accionable.
 
 Tarea: "${task.originalText}"
@@ -114,29 +137,38 @@ Reglas:
 - Sé específico y concreto (evita lenguaje vago)
 - Debe ser completable en 5–30 minutos
 - Un solo paso (sin sub-puntos ni varias oraciones)
-- Devuelve SOLO el texto del nuevo paso — sin comillas, sin explicación`,
+- Proporciona una estimación de duración (ej., '10m', '25m')`,
   };
 
   try {
     const model = genAI.getGenerativeModel({
       model: GEMINI_MODEL,
       systemInstruction: systemInstructions[lang],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: regenerateStepSchema,
+      },
     });
 
     const text = await callGeminiWithRetry(model, userPrompts[lang]);
-    // Strip surrounding quotes the model sometimes adds
-    const newText = text.trim().replace(/^["']|["']$/g, "");
 
-    if (!newText || newText.length > 500) {
+    const result = RegenerateResponseSchema.safeParse(JSON.parse(text));
+    if (!result.success) {
+      console.warn("[regenerate-step] Zod validation failed:", result.error.issues);
       return NextResponse.json(
-        { error: "Invalid AI response. Please try again." },
+        { error: "AI response was malformed. Please try again." },
         { status: 500 }
       );
     }
 
+    const { text: newText, duration_estimate } = result.data;
+
     const updatedStep = await prisma.taskStep.update({
       where: { id: stepId },
-      data: { text: newText },
+      data: {
+        text: newText,
+        durationEstimate: duration_estimate,
+      },
     });
 
     return NextResponse.json({ step: updatedStep });

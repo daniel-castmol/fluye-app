@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isNewDay } from "@/lib/utils";
 import { ClarifyResponseSchema } from "@/lib/schemas";
 import { genAI, GEMINI_MODEL, callGeminiWithRetry } from "@/lib/gemini";
+import { SchemaType, Schema } from "@google/generative-ai";
 
 const CLARIFY_FALLBACK_QUESTIONS = {
   en: [
@@ -16,6 +17,21 @@ const CLARIFY_FALLBACK_QUESTIONS = {
     "¿Qué es lo primero que se te viene a la mente cuando piensas en empezar?",
     "¿Hay algún bloqueo o dependencia que debas tener en cuenta?",
   ],
+};
+
+const clarifySchema: Schema = {
+  description: "A list of clarifying questions for a task",
+  type: SchemaType.OBJECT,
+  properties: {
+    questions: {
+      type: SchemaType.ARRAY,
+      description: "2-3 short, specific clarifying questions",
+      items: {
+        type: SchemaType.STRING,
+      },
+    },
+  },
+  required: ["questions"],
 };
 
 export async function POST(request: Request) {
@@ -83,14 +99,18 @@ export async function POST(request: Request) {
     es: `Ayudas a personas con TDAH a descomponer tareas vagas en pasos concretos. Eres empático pero eficiente. Contexto del usuario: ${profile.name}. Rol: ${profile.roleWork || "No especificado"}. Proyectos actuales: ${profile.projects || "No especificado"}.`,
   };
   const userPrompts = {
-    en: `I need to do the following:\n\n"${taskInput}"\n\nGenerate 2-3 short, specific clarifying questions to help me break this down better. Questions should be about specific problems, goals, or constraints. Keep questions concise.\n\nReturn ONLY valid JSON: { "questions": ["question1", "question2", "question3"] }`,
-    es: `Necesito hacer lo siguiente:\n\n"${taskInput}"\n\nGenera 2-3 preguntas cortas y específicas para ayudarme a desglosar esto mejor. Las preguntas deben ser sobre problemas, objetivos o restricciones específicas. Mantén las preguntas concisas.\n\nDevuelve SOLO JSON válido: { "questions": ["pregunta1", "pregunta2", "pregunta3"] }`,
+    en: `I need to do the following:\n\n"${taskInput}"\n\nGenerate 2-3 short, specific clarifying questions to help me break this down better. Questions should be about specific problems, goals, or constraints. Keep questions concise.`,
+    es: `Necesito hacer lo siguiente:\n\n"${taskInput}"\n\nGenera 2-3 preguntas cortas y específicas para ayudarme a desglosar esto mejor. Las preguntas deben ser sobre problemas, objetivos o restricciones específicas. Mantén las preguntas concisas.`,
   };
 
   try {
     const model = genAI.getGenerativeModel({
       model: GEMINI_MODEL,
       systemInstruction: systemInstructions[lang],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: clarifySchema,
+      },
     });
 
     const text = await callGeminiWithRetry(model, userPrompts[lang]);
@@ -101,13 +121,7 @@ export async function POST(request: Request) {
       data: { clarifyRequestsToday: { increment: 1 } },
     });
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.warn("[clarify] No JSON found in AI response, using fallback");
-      return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS[lang] });
-    }
-
-    const result = ClarifyResponseSchema.safeParse(JSON.parse(jsonMatch[0]));
+    const result = ClarifyResponseSchema.safeParse(JSON.parse(text));
     if (!result.success) {
       console.warn("[clarify] Zod validation failed:", result.error.issues);
       return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS[lang] });
@@ -116,6 +130,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ questions: result.data.questions });
   } catch (err) {
     console.error("[clarify] Gemini error:", err);
-    return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS });
+    return NextResponse.json({ questions: CLARIFY_FALLBACK_QUESTIONS[lang] });
   }
 }

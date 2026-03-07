@@ -9,6 +9,9 @@ export interface UserProfile {
   subscriptionStatus: string;
   taskBreakdownsToday: number;
   clarifyRequestsToday: number;
+  totalTasksCompleted: number;
+  currentStreak: number;
+  lastCompletionDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,6 +23,7 @@ export interface TaskStep {
   order: number;
   completed: boolean;
   completedAt: string | null;
+  durationEstimate: string | null;
 }
 
 export interface Task {
@@ -39,10 +43,15 @@ export interface ClarifyResponse {
   questions: string[];
 }
 
+export interface BreakdownTaskStep {
+  text: string;
+  duration_estimate: string;
+}
+
 export interface BreakdownTask {
   original: string;
   context: string;
-  steps: string[];
+  steps: BreakdownTaskStep[];
 }
 
 export interface BreakdownResponse {

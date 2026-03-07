@@ -265,17 +265,24 @@ export default function TaskList({
                           }
                           className="mt-0.5 border-[#334155] data-[state=checked]:bg-[#86EFAC] data-[state=checked]:border-[#86EFAC] data-[state=checked]:text-[#0F172A]"
                         />
-                        <span
-                          className={cn(
-                            "text-sm leading-relaxed transition-all duration-200",
-                            step.completed
-                              ? "text-[#94A3B8] line-through"
-                              : "text-[#F8FAFC]",
-                            isRegenerating && "opacity-40"
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={cn(
+                              "text-sm leading-relaxed transition-all duration-200",
+                              step.completed
+                                ? "text-[#94A3B8] line-through"
+                                : "text-[#F8FAFC]",
+                              isRegenerating && "opacity-40"
+                            )}
+                          >
+                            {isRegenerating ? t.taskList.regenerating : step.text}
+                          </span>
+                          {step.durationEstimate && !step.completed && (
+                            <span className="inline-flex items-center w-fit px-1.5 py-0.5 rounded-md bg-[#334155]/40 text-[#86EFAC] text-[10px] font-medium border border-[#86EFAC]/10">
+                              {step.durationEstimate}
+                            </span>
                           )}
-                        >
-                          {isRegenerating ? t.taskList.regenerating : step.text}
-                        </span>
+                        </div>
                       </label>
 
                       {/* Regenerate button — visible on hover or while loading */}

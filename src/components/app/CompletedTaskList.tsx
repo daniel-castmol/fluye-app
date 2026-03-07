@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import useSWR, { mutate } from "swr";
 import { toast } from "sonner";
 import { RotateCcw, CheckCircle2 } from "lucide-react";
 import type { Task } from "@/types";
@@ -12,49 +13,17 @@ interface CompletedTaskListProps {
   onTaskReopened: (task: Task) => void;
 }
 
-/**
- * Module-level cache: avoids re-fetching on every tab switch.
- * Invalidated after CACHE_TTL_MS (30 s) or when a task is reopened.
- */
-const CACHE_TTL_MS = 30_000;
-let cachedTasks: Task[] | null = null;
-let cacheTimestamp = 0;
-
-/** Called externally to invalidate cache when a task is newly completed. */
-export function invalidateCompletedCache() {
-  cachedTasks = null;
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function CompletedTaskList({ t, onTaskReopened }: CompletedTaskListProps) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, error, isLoading } = useSWR("/api/tasks?status=completed", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+  });
+
   const [reopeningId, setReopeningId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchCompleted() {
-      // Serve from cache if still fresh
-      if (cachedTasks && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
-        setTasks(cachedTasks);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const res = await fetch("/api/tasks?status=completed");
-        if (res.ok) {
-          const data = await res.json();
-          const fetched: Task[] = data.tasks ?? [];
-          cachedTasks = fetched;
-          cacheTimestamp = Date.now();
-          setTasks(fetched);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCompleted();
-  }, []);
+  const tasks: Task[] = data?.tasks ?? [];
 
   const handleReopen = useCallback(
     async (taskId: string) => {
@@ -66,9 +35,10 @@ export default function CompletedTaskList({ t, onTaskReopened }: CompletedTaskLi
           return;
         }
         const { task } = await res.json();
-        // Invalidate cache so next open is fresh
-        cachedTasks = null;
-        setTasks((prev) => prev.filter((t) => t.id !== taskId));
+        
+        // Optimistically update the SWR cache
+        mutate("/api/tasks?status=completed", { tasks: tasks.filter((t) => t.id !== taskId) }, false);
+        
         onTaskReopened(task);
       } catch {
         toast.error(t.completedList.reopenFailed);
@@ -76,10 +46,10 @@ export default function CompletedTaskList({ t, onTaskReopened }: CompletedTaskLi
         setReopeningId(null);
       }
     },
-    [onTaskReopened, t.completedList.reopenFailed]
+    [onTaskReopened, t.completedList.reopenFailed, tasks]
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-16">
         <div className="w-8 h-8 rounded-full border-2 border-[#334155] border-t-[#86EFAC] animate-spin" />
@@ -87,7 +57,7 @@ export default function CompletedTaskList({ t, onTaskReopened }: CompletedTaskLi
     );
   }
 
-  if (tasks.length === 0) {
+  if (tasks.length === 0 || error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <p className="text-[#94A3B8] text-sm">{t.completedList.empty}</p>
@@ -119,6 +89,14 @@ export default function CompletedTaskList({ t, onTaskReopened }: CompletedTaskLi
                 </div>
                 <p className="text-xs text-[#94A3B8]/50 mt-1 ml-6">
                   {totalSteps}/{totalSteps} {t.completedList.stepsLabel}
+                  {task.steps.some(s => s.durationEstimate) && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded-md bg-[#334155]/40 text-[#86EFAC]/40 text-[10px] font-medium border border-[#86EFAC]/5">
+                      {task.steps.reduce((acc, s) => {
+                        const match = s.durationEstimate?.match(/(\d+)/);
+                        return acc + (match ? parseInt(match[0]) : 0);
+                      }, 0)}m total
+                    </span>
+                  )}
                 </p>
                 {/* Full progress bar */}
                 <div className="w-full h-1 bg-[#334155]/40 rounded-full overflow-hidden mt-2 ml-6">

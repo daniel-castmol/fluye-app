@@ -32,6 +32,11 @@ model UserProfile {
   clarifyRequestsToday Int     @default(0)
   lastClarifyReset     DateTime @default(now())
 
+  // Progression tracking
+  totalTasksCompleted Int       @default(0)
+  currentStreak       Int       @default(0)
+  lastCompletionDate  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -63,8 +68,9 @@ model TaskStep {
   taskId String
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  text  String
-  order Int
+  text             String
+  order            Int
+  durationEstimate String?
 
   completed   Boolean   @default(false)
   completedAt DateTime?
