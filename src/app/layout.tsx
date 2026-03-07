@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -17,6 +18,17 @@ export const metadata: Metadata = {
   title: "Fluye — AI-Powered ADHD Task Translator",
   description:
     "Kill the paralysis. Slice the task. Fluye translates vague tasks into concrete, achievable steps.",
+  manifest: "/manifest.json",
+  themeColor: "#0F172A",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Fluye",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -30,6 +42,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Analytics />
         <Toaster richColors position="bottom-right" />
       </body>
     </html>
