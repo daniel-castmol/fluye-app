@@ -248,7 +248,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
               ? {
                   ...task,
                   steps: task.steps.map((s) =>
-                    s.id === stepId ? { ...s, text: step.text } : s
+                    s.id === stepId ? { ...s, text: step.text, durationEstimate: step.durationEstimate } : s
                   ),
                 }
               : task

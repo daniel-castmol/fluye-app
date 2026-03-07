@@ -69,13 +69,14 @@ export async function PATCH(
         newStreak = 1;
       } else {
         const lastDate = new Date(profile.lastCompletionDate);
-        const diffInDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // Use UTC date strings to compare "days"
-        const isToday = now.toISOString().split("T")[0] === lastDate.toISOString().split("T")[0];
+
+        // Compare UTC date strings to determine day boundaries
+        const todayUTC = now.toISOString().split("T")[0];
+        const lastUTC = lastDate.toISOString().split("T")[0];
+        const isToday = todayUTC === lastUTC;
         const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        const isYesterday = yesterday.toISOString().split("T")[0] === lastDate.toISOString().split("T")[0];
+        yesterday.setUTCDate(now.getUTCDate() - 1);
+        const isYesterday = yesterday.toISOString().split("T")[0] === lastUTC;
 
         if (isYesterday) {
           newStreak += 1;

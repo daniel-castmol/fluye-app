@@ -80,7 +80,7 @@ export default function EmptyState({ t, onSubmit, profileId, onCancel, language 
         // Keep static fallback chips on network/parse failure
       })
       .finally(() => setLoadingChips(false));
-  }, [profileId]);
+  }, [profileId, language]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
