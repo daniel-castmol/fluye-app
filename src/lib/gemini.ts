@@ -12,13 +12,13 @@ export const GEMINI_MODEL = "gemini-flash-latest";
 export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 /**
- * Calls a Gemini model with automatic retry on transient errors (503, overloaded).
- * Waits 2 s between retries.
+ * Calls a Gemini model with automatic retry on transient errors (503, overloaded, 429).
+ * Uses exponential backoff: 2s, 4s, 8s.
  */
 export async function callGeminiWithRetry(
   model: GenerativeModel,
   prompt: string,
-  retries = 2
+  retries = 3
 ): Promise<string> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -28,10 +28,11 @@ export async function callGeminiWithRetry(
       const isTransient =
         err instanceof Error &&
         (err.message.includes("503") ||
+          err.message.includes("429") ||
           err.message.includes("overloaded") ||
           err.message.includes("ServiceUnavailable"));
       if (isTransient && attempt < retries) {
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt)));
         continue;
       }
       throw err;
