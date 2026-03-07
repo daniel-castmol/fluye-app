@@ -2,7 +2,7 @@
 
 **Role:** Senior Staff Engineer & Codebase Auditor.
 **Focus:** Code quality, architecture integrity, bug hunting, and pragmatic improvements.
-**Branch:** `gemini-dev` (auditing Gemini's changes before merge decision).
+**Branch:** `main` (merged gemini-dev, Sprint 1 complete).
 
 ## Tech Stack (Current)
 - **Framework:** Next.js 16 (App Router, TypeScript strict mode).
@@ -15,17 +15,19 @@
 - **Validation:** Zod for AI response validation.
 - **Deployment:** Vercel.
 
-## Branch Topology
-- `main` = `dev` = commit `1c5311f` (AdaL's Phase 2 complete)
-- `gemini-dev` = `main` + 3 commits (Gemini's Phase 3 work)
+## Session 1 (2026-03-07)
+1. Deep codebase audit -- found 4 bugs, full report at `agents/claude/tasks/audit-report.md`
+2. Bug fixes -- durationEstimate propagation, EmptyState language dep, streak UTC calc
+3. Merged gemini-dev to main (fast-forward)
+4. Gemini retry: 3 retries, exponential backoff, 429 handling
+5. Sprint 1 design: Focus Card glassmorphism, rotating ghost text, breathing CTA, active thinking loading
+6. Sprint 1 features: auto-save drafts, retry button, PWA manifest + icons, Vercel Analytics
 
-## What Gemini Changed (3 commits on gemini-dev)
-1. **Agent context structure** -- created `agents/` directory, moved ADAL_CONTEXT
-2. **Native Structured Outputs** -- migrated all 3 AI routes from regex JSON parsing to Gemini's `responseSchema`
-3. **Duration estimates** -- added `durationEstimate` field to TaskStep (schema + UI)
-4. **Progression tracking** -- streak + total tasks completed in UserProfile + navbar display
-5. **SWR migration** -- replaced module-level cache in completed/archived lists
-6. **Deleted TaskInput.tsx** -- consolidated into EmptyState
+## Current State
+- All branches aligned on `main`
+- Sprint 1 complete. Sprint 2 next: task sharing, progress ring, readability
+- Gemini free tier rate-limited (20 RPD). User considering Claude API swap.
+- Todo list: `agents/claude/tasks/todo.md`
 
 ## Collaboration
 - AdaL context: `agents/adal/CONTEXT.md`

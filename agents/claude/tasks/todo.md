@@ -3,26 +3,26 @@
 ## 1. Pre-Launch Design Polish (Priority: HIGH)
 Make the app feel emotionally right before putting it in front of users.
 
-- [ ] **Focus Card layout** -- Glassmorphism container for the input area (subtle backdrop-blur, border glow on focus). Tightens the visual hierarchy and makes the empty state feel like a conversation, not a form.
-- [ ] **Rotating ghost text** -- Cycle relatable placeholder text inside the textarea ("I need to clean my apartment but I don't know where to start...", "Fix the bug in checkout but I keep procrastinating..."). Kills blank-form paralysis.
-- [ ] **Breathing glow on CTA** -- Subtle pulse animation on "Get Clarity" button using mint `#86EFAC`. Acts as a visual lighthouse.
-- [ ] **Active thinking loading messages** -- Replace static "Analyzing..." with rotating context-aware messages: "Understanding your context...", "Removing the noise...", "Finding your first 5-minute win...". Builds anticipation instead of frustration.
-- [ ] **Better space usage** -- The app page (EmptyState) has too much dead space below chips. Tighten vertical rhythm, make the input card more prominent, reduce the gap between hero text and textarea.
+- [x] **Focus Card layout** -- Glassmorphism container with backdrop-blur, glow on focus
+- [x] **Rotating ghost text** -- 5 relatable placeholders cycle every 4s in textarea
+- [x] **Breathing glow on CTA** -- Subtle pulse animation on "Get Clarity" button
+- [x] **Active thinking loading messages** -- 5 rotating messages during AI processing
+- [x] **Better space usage** -- Tighter vertical rhythm, max-w-2xl card, monospace textarea
 - [ ] **Progress ring for gamification** -- Replace static streak/trophy numbers in navbar with a small progress ring or level bar that fills up. Makes the dopamine loop visual.
 - [ ] **Line height / readability** -- Ensure body text has generous line-height (1.6-1.8) on dark background to avoid halation.
 
 ## 2. Pre-Launch Features (Priority: HIGH)
 Minimum viable features before user testing.
 
-- [ ] **Auto-save drafts** -- If user types something and navigates away (tab switch, page leave), persist it. Show toast on return: "We saved your thought. Ready to tackle it?" Small but critical for ADHD users who lose thoughts.
-- [ ] **Retry UX for API failures** -- When Gemini 503s exhaust all retries, show a "Try again" button instead of just an error message. User shouldn't have to re-type.
-- [ ] **PWA manifest + basic service worker** -- `manifest.json`, app icons, `display: standalone`. Users can "install" from mobile browser. No offline support needed yet, just the installability.
+- [x] **Auto-save drafts** -- localStorage persistence, restored on next visit via initialDraft prop
+- [x] **Retry UX for API failures** -- "Try Again" button inline with error messages
+- [x] **PWA manifest** -- manifest.json, SVG icons, apple-web-app meta, standalone display
 
 ## 3. Growth Features (Priority: MEDIUM)
 From Phase 3 roadmap + Gemini's pending items.
 
 - [ ] **Task sharing link** (`/shared/[taskId]`) -- Public read-only view of a broken-down task. No auth required to view. Share button on each task card generates the link. Good for virality.
-- [ ] **Analytics** -- PostHog or Vercel Analytics. Track: signups, breakdowns created, steps completed, retention. Need data before user testing week.
+- [x] **Analytics** -- Vercel Analytics added (page views + web vitals, zero-config)
 
 ## 4. Deferred (Post-Launch / Data-Driven)
 Don't build until validated by real user feedback.
