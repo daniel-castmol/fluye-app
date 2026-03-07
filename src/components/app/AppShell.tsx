@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import type { Task, UserProfile } from "@/types";
-import { getTranslations, type Language } from "@/lib/i18n";
+import { getTranslations, type Language, type Translations } from "@/lib/i18n";
 import AppNavbar from "./AppNavbar";
 import EditProfileModal from "./EditProfileModal";
 import EmptyState, { invalidateChipsCache } from "./EmptyState";
@@ -15,6 +15,32 @@ import ArchivedTaskList from "./ArchivedTaskList";
 import CompletedTaskList from "./CompletedTaskList";
 
 type AppStep = "input" | "clarifying" | "loading" | "tasks";
+
+/** Rotating "active thinking" messages during AI processing */
+function LoadingState({ t }: { t: Translations }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const steps = t.loading.steps;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStepIndex((prev) => (prev + 1) % steps.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [steps.length]);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="relative mb-8">
+        <div className="w-16 h-16 rounded-full border-2 border-[#334155] border-t-[#86EFAC] animate-spin" />
+        <div className="absolute inset-0 w-16 h-16 rounded-full border-2 border-transparent border-b-[#86EFAC]/30 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+      </div>
+      <p className="text-[#F8FAFC] text-sm font-medium transition-opacity duration-300" key={stepIndex}>
+        {steps[stepIndex]}
+      </p>
+      <p className="mt-2 text-[#94A3B8]/50 text-xs">{t.loading.subtitle}</p>
+    </div>
+  );
+}
 
 interface AppShellProps {
   profile: UserProfile;
@@ -59,9 +85,25 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
   const [step, setStep] = useState<AppStep>("tasks");
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [activeTab, setActiveTab] = useState<"active" | "completed" | "archived">("active");
-  const [taskInput, setTaskInput] = useState("");
+  // Auto-save draft: restore from localStorage on mount, persist on change
+  const DRAFT_KEY = "fluye_task_draft";
+  const [taskInput, setTaskInput] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try { return localStorage.getItem(DRAFT_KEY) || ""; } catch { return ""; }
+  });
   const [questions, setQuestions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Persist draft to localStorage (debounced via effect)
+  useEffect(() => {
+    try {
+      if (taskInput) {
+        localStorage.setItem(DRAFT_KEY, taskInput);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    } catch { /* ignore */ }
+  }, [taskInput]);
 
   const handleTaskSubmit = useCallback(
     async (input: string) => {
@@ -337,8 +379,17 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
 
       <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
         {error && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
-            {error}
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm flex items-center justify-between gap-3">
+            <span>{error}</span>
+            {taskInput && (
+              <button
+                type="button"
+                onClick={() => handleTaskSubmit(taskInput)}
+                className="shrink-0 px-3 py-1 rounded-lg bg-red-500/20 text-red-200 text-xs font-medium hover:bg-red-500/30 transition-colors"
+              >
+                {t.errors.breakdownRetry}
+              </button>
+            )}
           </div>
         )}
 
@@ -348,6 +399,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
             onSubmit={handleTaskSubmit}
             profileId={profile.id}
             language={language}
+            initialDraft={taskInput}
           />
         )}
 
@@ -361,15 +413,7 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
         )}
 
         {step === "loading" && (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 border-[#334155] border-t-[#86EFAC] animate-spin" />
-            </div>
-            <p className="mt-6 text-[#94A3B8] text-sm animate-pulse">
-              {t.loading.analyzing}
-            </p>
-            <p className="mt-1 text-[#94A3B8]/60 text-xs">{t.loading.subtitle}</p>
-          </div>
+          <LoadingState t={t} />
         )}
 
         {step === "tasks" && (

@@ -86,10 +86,18 @@ export const translations = {
     loading: {
       analyzing: "Analyzing your tasks...",
       subtitle: "Using your profile + answers to create concrete steps",
+      steps: [
+        "Understanding your context...",
+        "Removing the noise...",
+        "Finding your first 5-minute win...",
+        "Breaking it into concrete steps...",
+        "Almost there...",
+      ],
     },
     errors: {
       clarificationFailed: "Failed to get clarification. Please try again.",
       breakdownFailed: "Something went wrong. Please try again.",
+      breakdownRetry: "Try Again",
       clearFailed: "Failed to clear tasks.",
       restoreFailed: "Failed to restore task. Please try again.",
     },
@@ -189,10 +197,18 @@ export const translations = {
     loading: {
       analyzing: "Analizando tus tareas...",
       subtitle: "Usando tu perfil + respuestas para crear pasos concretos",
+      steps: [
+        "Entendiendo tu contexto...",
+        "Eliminando el ruido...",
+        "Buscando tu primera victoria de 5 minutos...",
+        "Descomponiendo en pasos concretos...",
+        "Ya casi...",
+      ],
     },
     errors: {
       clarificationFailed: "Error al obtener aclaración. Inténtalo de nuevo.",
       breakdownFailed: "Algo salió mal. Inténtalo de nuevo.",
+      breakdownRetry: "Intentar de Nuevo",
       clearFailed: "Error al limpiar las tareas.",
       restoreFailed: "Error al restaurar la tarea. Inténtalo de nuevo.",
     },
