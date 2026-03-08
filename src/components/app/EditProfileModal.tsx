@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -8,11 +9,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
 import type { UserProfile } from "@/types";
 import type { Language, Translations } from "@/lib/i18n";
 
@@ -32,6 +35,7 @@ export default function EditProfileModal({
   onClose,
   onSaved,
 }: EditProfileModalProps) {
+  const router = useRouter();
   const [name, setName] = useState(profile.name);
   const [roleWork, setRoleWork] = useState(profile.roleWork ?? "");
   const [projects, setProjects] = useState(profile.projects ?? "");
@@ -39,6 +43,8 @@ export default function EditProfileModal({
     (profile.preferredLanguage as Language) || "en"
   );
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Sync form when profile prop changes (e.g. after external language switch)
   useEffect(() => {
@@ -184,8 +190,66 @@ export default function EditProfileModal({
               {loading ? t.editProfile.saving : t.editProfile.saveButton}
             </Button>
           </div>
+
+          {/* Danger zone */}
+          <div className="border-t border-[#334155]/50 pt-4 mt-2">
+            <button
+              type="button"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="flex items-center gap-2 text-xs text-red-400/70 hover:text-red-400 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {t.editProfile.deleteAccount}
+            </button>
+          </div>
         </form>
       </DialogContent>
+
+      {/* Delete account confirmation dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-[#1E293B] border-[#334155] text-[#F8FAFC] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-red-400">
+              {t.editProfile.deleteConfirmTitle}
+            </DialogTitle>
+            <DialogDescription className="text-[#94A3B8]">
+              {t.editProfile.deleteConfirmDescription}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3 sm:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+              className="flex-1 border-[#334155] text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#334155]/50"
+            >
+              {t.editProfile.deleteConfirmCancel}
+            </Button>
+            <Button
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  const res = await fetch("/api/profile", { method: "DELETE" });
+                  if (!res.ok) throw new Error();
+                  // Sign out client-side and redirect to landing
+                  const { createClient } = await import("@/lib/supabase/client");
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                  router.push("/");
+                  router.refresh();
+                } catch {
+                  toast.error(t.editProfile.deleteFailed);
+                  setDeleting(false);
+                }
+              }}
+              disabled={deleting}
+              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+            >
+              {deleting ? "..." : t.editProfile.deleteConfirmConfirm}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
