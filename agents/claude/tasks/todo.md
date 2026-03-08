@@ -8,8 +8,8 @@ Make the app feel emotionally right before putting it in front of users.
 - [x] **Breathing glow on CTA** -- Subtle pulse animation on "Get Clarity" button
 - [x] **Active thinking loading messages** -- 5 rotating messages during AI processing
 - [x] **Better space usage** -- Tighter vertical rhythm, max-w-2xl card, monospace textarea
-- [ ] **Progress ring for gamification** -- Replace static streak/trophy numbers in navbar with a small progress ring or level bar that fills up. Makes the dopamine loop visual.
-- [ ] **Line height / readability** -- Ensure body text has generous line-height (1.6-1.8) on dark background to avoid halation.
+- [x] **Progress ring for gamification** -- Replace static streak/trophy numbers in navbar with a small progress ring or level bar that fills up. Makes the dopamine loop visual.
+- [x] **Line height / readability** -- Ensure body text has generous line-height (1.6-1.8) on dark background to avoid halation.
 
 ## 2. Pre-Launch Features (Priority: HIGH)
 Minimum viable features before user testing.
@@ -21,7 +21,7 @@ Minimum viable features before user testing.
 ## 3. Growth Features (Priority: MEDIUM)
 From Phase 3 roadmap + Gemini's pending items.
 
-- [ ] **Task sharing link** (`/shared/[taskId]`) -- Public read-only view of a broken-down task. No auth required to view. Share button on each task card generates the link. Good for virality.
+- [x] **Task sharing link** (`/shared/[shareToken]`) -- Public read-only view of a broken-down task. No auth required to view. Share button on each task card generates the link + copies to clipboard. OG metadata for social previews.
 - [x] **Analytics** -- Vercel Analytics added (page views + web vitals, zero-config)
 
 ## 4. Deferred (Post-Launch / Data-Driven)
@@ -40,5 +40,5 @@ Don't build until validated by real user feedback.
 ## Execution Order
 
 **Sprint 1 (ship to users):** Items 1.1-1.5 (design) + 2.1-2.3 (features) + 3.2 (analytics)
-**Sprint 2 (growth):** Items 1.6-1.7 + 3.1 (task sharing)
+**Sprint 2 (growth):** Items 1.6-1.7 + 3.1 (task sharing) ✅ COMPLETE
 **Sprint 3 (iterate):** Based on user feedback from testing week

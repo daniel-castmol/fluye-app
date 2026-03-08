@@ -33,6 +33,8 @@ export interface Task {
   originalText: string;
   clarification: string | null;
   status: string;
+  shareToken: string | null;
+  isShared: boolean;
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;

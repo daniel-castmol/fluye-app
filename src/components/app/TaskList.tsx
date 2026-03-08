@@ -15,7 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, X, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { Plus, Trash2, X, ChevronDown, ChevronUp, RefreshCw, Share2, Check } from "lucide-react";
+import { toast } from "sonner";
 
 interface TaskListProps {
   t: Translations;
@@ -95,6 +96,23 @@ export default function TaskList({
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   // Tracks which step is currently being regenerated (stepId or null)
   const [regeneratingStepId, setRegeneratingStepId] = useState<string | null>(null);
+  // Tracks which task just had its share link copied
+  const [copiedTaskId, setCopiedTaskId] = useState<string | null>(null);
+
+  const handleShare = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/share`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const { shareToken } = await res.json();
+      const url = `${window.location.origin}/shared/${shareToken}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedTaskId(taskId);
+      toast.success(t.taskList.linkCopied);
+      setTimeout(() => setCopiedTaskId(null), 2000);
+    } catch {
+      toast.error(t.taskList.shareFailed);
+    }
+  };
 
   const handleRegenerate = async (taskId: string, stepId: string) => {
     setRegeneratingStepId(stepId);
@@ -236,13 +254,27 @@ export default function TaskList({
                   </div>
                 </div>
 
-                <button
-                  onClick={() => onTaskDelete(task.id)}
-                  className="shrink-0 ml-2 p-1 rounded-md text-[#94A3B8] hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                  aria-label="Delete task"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <button
+                    onClick={() => handleShare(task.id)}
+                    className="p-1 rounded-md text-[#94A3B8] hover:text-[#86EFAC] hover:bg-[#86EFAC]/10 transition-colors"
+                    aria-label={t.taskList.share}
+                    title={t.taskList.share}
+                  >
+                    {copiedTaskId === task.id ? (
+                      <Check className="w-4 h-4 text-[#86EFAC]" />
+                    ) : (
+                      <Share2 className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => onTaskDelete(task.id)}
+                    className="p-1 rounded-md text-[#94A3B8] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    aria-label="Delete task"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Steps */}

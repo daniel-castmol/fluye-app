@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { LogOut, UserCog, Flame, Trophy } from "lucide-react";
 import type { Language } from "@/lib/i18n";
+import { ProgressRing } from "@/components/ui/progress-ring";
 
 interface AppNavbarProps {
   profileName: string;
@@ -32,15 +33,29 @@ export default function AppNavbar({
           </span>
           
           <div className="flex items-center gap-4">
-            {/* Progression Stats */}
-            <div className="hidden sm:flex items-center gap-4 px-3 py-1.5 rounded-full border border-[#334155] bg-[#1E293B]/30">
-              <div className="flex items-center gap-1.5" title="Daily Streak">
-                <Flame className={`w-4 h-4 ${currentStreak > 0 ? "text-orange-500" : "text-[#94A3B8]"}`} />
+            {/* Progression Stats — Progress Rings */}
+            <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-full border border-[#334155] bg-[#1E293B]/30">
+              <div className="flex items-center gap-1.5" title={`Daily Streak: ${currentStreak} day${currentStreak !== 1 ? "s" : ""}`}>
+                <ProgressRing
+                  progress={Math.min(currentStreak, 7) / 7 * 100}
+                  size={28}
+                  strokeWidth={2.5}
+                  progressColor={currentStreak > 0 ? "#F97316" : "#475569"}
+                >
+                  <Flame className={`w-3 h-3 ${currentStreak > 0 ? "text-orange-500" : "text-[#94A3B8]"}`} />
+                </ProgressRing>
                 <span className="text-[#F8FAFC] text-xs font-bold">{currentStreak}</span>
               </div>
-              <div className="w-px h-3 bg-[#334155]" />
-              <div className="flex items-center gap-1.5" title="Total Tasks Crushed">
-                <Trophy className="w-4 h-4 text-yellow-500" />
+              <div className="w-px h-4 bg-[#334155]" />
+              <div className="flex items-center gap-1.5" title={`Tasks Crushed: ${totalTasksCompleted}`}>
+                <ProgressRing
+                  progress={(totalTasksCompleted % 10) / 10 * 100}
+                  size={28}
+                  strokeWidth={2.5}
+                  progressColor="#EAB308"
+                >
+                  <Trophy className="w-3 h-3 text-yellow-500" />
+                </ProgressRing>
                 <span className="text-[#F8FAFC] text-xs font-bold">{totalTasksCompleted}</span>
               </div>
             </div>

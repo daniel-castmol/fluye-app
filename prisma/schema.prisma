@@ -54,6 +54,10 @@ model Task {
 
   status String @default("active")
 
+  // Sharing
+  shareToken String? @unique
+  isShared   Boolean @default(false)
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
