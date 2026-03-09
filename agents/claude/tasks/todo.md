@@ -24,9 +24,19 @@ From Phase 3 roadmap + Gemini's pending items.
 - [x] **Task sharing link** (`/shared/[shareToken]`) -- Public read-only view of a broken-down task. No auth required to view. Share button on each task card generates the link + copies to clipboard. OG metadata for social previews.
 - [x] **Analytics** -- Vercel Analytics added (page views + web vitals, zero-config)
 
-## 4. Deferred (Post-Launch / Data-Driven)
+## 4. User Feedback (from testing week)
+
+- [x] **Email magic link login** -- Users wanted to sign in without Google/GitHub
+- [x] **Account deletion** -- Required for user trust, GDPR-friendly
+- [x] **Spanish accent bug** -- Gemini structured output mangling accents (ó→3), fixed via explicit prompt instructions
+
+## 5. Deferred (Post-Launch / Data-Driven)
 Don't build until validated by real user feedback.
 
+- [ ] **Notion integration** -- Export/sync tasks to Notion. Multiple users requested.
+- [ ] **Free-flow context input** -- Let users provide more context for complex tasks (could be paid tier)
+- [ ] **"Go deeper" prompt generator** -- For tasks like cooking/research, generate a follow-up prompt with resources (ingredient lists, links, docs). Button: "Want to go deeper? Generate prompt"
+- [ ] **Pomodoro timer** -- Integrated timer for working through steps
 - [ ] Stripe integration (wait for 10 active users who'd pay)
 - [ ] Email recap / weekly summary
 - [ ] Sidebar nav (validate if users want it)

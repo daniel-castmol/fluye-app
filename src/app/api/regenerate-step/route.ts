@@ -98,6 +98,7 @@ User context:
 - Role: ${profile.roleWork || "Not specified"}
 - Projects: ${profile.projects || "Not specified"}`,
     es: `Eres un asistente de descomposición de tareas para personas con TDAH. Eres preciso, empático y orientado a la acción.
+IMPORTANTE: Escribe siempre en español correcto con todos los acentos y tildes (á, é, í, ó, ú, ñ, ü). Nunca omitas ni reemplaces caracteres acentuados.
 
 Contexto del usuario:
 - Nombre: ${profile.name}
