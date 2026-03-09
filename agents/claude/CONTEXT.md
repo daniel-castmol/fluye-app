@@ -36,14 +36,23 @@
    - i18n: EN/ES translations for all sharing strings
 5. Sprint 2 complete -- all pre-launch items done
 
+## Session 3 (2026-03-08, continued)
+1. Account deletion feature — DELETE /api/profile, admin client, confirmation dialog in EditProfileModal
+2. User testing plan — docs/user-testing-plan.md with 5-phase strategy, SQL queries, feedback form
+3. Marketing docs — docs/marketing/ with recruitment messages (EN/ES) and feedback form questions
+4. Email magic link login — primary sign-in option, Supabase OTP, "check your email" state
+5. Spanish accent bug fix — Gemini structured output mangling accents, fixed via explicit prompt instructions
+6. Backlog organized with user feedback: Notion integration, free-flow context, "go deeper" prompt, pomodoro, personal dev dashboard
+
 ## Current State
-- Branch: `new-dev-env` (Sprint 2 work, merging to `main`)
-- Sprint 1 + Sprint 2 complete. All pre-launch features done.
+- Branch: `sprint3-dev` (for next feature development)
+- `main` is production — Sprint 1 + Sprint 2 shipped, deployed on Vercel
 - **Manual SQL migration required** before sharing works:
   ```sql
   ALTER TABLE "Task" ADD COLUMN "shareToken" TEXT UNIQUE;
   ALTER TABLE "Task" ADD COLUMN "isShared" BOOLEAN NOT NULL DEFAULT false;
   ```
+- User testing week in progress — collecting feedback from ~10 users
 - Gemini free tier rate-limited (20 RPD). User considering Claude API swap.
 - Todo list: `agents/claude/tasks/todo.md`
 

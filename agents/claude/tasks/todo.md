@@ -37,6 +37,7 @@ Don't build until validated by real user feedback.
 - [ ] **Free-flow context input** -- Let users provide more context for complex tasks (could be paid tier)
 - [ ] **"Go deeper" prompt generator** -- For tasks like cooking/research, generate a follow-up prompt with resources (ingredient lists, links, docs). Button: "Want to go deeper? Generate prompt"
 - [ ] **Pomodoro timer** -- Integrated timer for working through steps
+- [ ] **Personal development dashboard** -- Analyze completed tasks to surface skills/abilities the user is building (e.g. "project management", "coding", "self-care"). Visual progress over time, skill tags auto-detected from task content by AI. The dopamine loop beyond streaks.
 - [ ] Stripe integration (wait for 10 active users who'd pay)
 - [ ] Email recap / weekly summary
 - [ ] Sidebar nav (validate if users want it)
