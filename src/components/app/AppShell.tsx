@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import type { Task, UserProfile } from "@/types";
 import { getTranslations, type Language, type Translations } from "@/lib/i18n";
-import AppNavbar from "./AppNavbar";
-import EditProfileModal from "./EditProfileModal";
-import EmptyState, { invalidateChipsCache } from "./EmptyState";
+import EmptyState from "./EmptyState";
 import ClarificationChat from "./ClarificationChat";
 import TaskList from "./TaskList";
 import ArchivedTaskList from "./ArchivedTaskList";
@@ -48,37 +45,9 @@ interface AppShellProps {
 }
 
 export default function AppShell({ profile, initialTasks }: AppShellProps) {
-  const router = useRouter();
-
-  // Language state lives here so the toggle re-renders all children immediately.
-  // Background-synced to profile so the preference persists across sessions.
-  const [language, setLanguage] = useState<Language>(
-    (profile.preferredLanguage as Language) || "en"
-  );
+  // Language from profile (layout handles the toggle now)
+  const language = (profile.preferredLanguage as Language) || "en";
   const t = getTranslations(language);
-
-  // Profile name tracked in state so Edit Profile updates navbar immediately
-  const [profileName, setProfileName] = useState(profile.name);
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-
-  // Progression tracking in state for immediate UI feedback
-  const [totalTasksCompleted, setTotalTasksCompleted] = useState(profile.totalTasksCompleted);
-  const [currentStreak, setCurrentStreak] = useState(profile.currentStreak);
-
-  const handleLanguageChange = useCallback(
-    async (lang: Language) => {
-      setLanguage(lang);
-      // Fire-and-forget — we don't block the UI on this
-      fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preferredLanguage: lang }),
-      }).catch(() => {
-        // Ignore sync errors; the in-session language change is already applied
-      });
-    },
-    []
-  );
 
   // Always start in "tasks" so the tab bar is always accessible.
   // The active tab shows EmptyState inline when there are no active tasks.
@@ -226,19 +195,11 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
       }
 
       try {
-        const res = await fetch(`/api/tasks/${taskId}/steps/${stepId}`, {
+        await fetch(`/api/tasks/${taskId}/steps/${stepId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ completed }),
         });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.profileStats) {
-            setTotalTasksCompleted(data.profileStats.totalTasksCompleted);
-            setCurrentStreak(data.profileStats.currentStreak);
-          }
-        }
       } catch {
         // Roll back optimistic update on failure
         setTasks((prev) =>
@@ -338,47 +299,9 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
     setActiveTab("active");
   }, []);
 
-  const handleProfileSaved = useCallback(
-    ({ name, preferredLanguage }: { name: string; preferredLanguage: Language }) => {
-      setProfileName(name);
-      setLanguage(preferredLanguage);
-      // Role/projects may have changed — bust the chip cache so EmptyState
-      // fetches fresh context-aware suggestions on next open
-      invalidateChipsCache();
-    },
-    []
-  );
-
-  const handleSignOut = useCallback(async () => {
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }, [router]);
-
   return (
-    <div className="min-h-screen bg-[#0F172A]">
-      <AppNavbar
-        profileName={profileName}
-        language={language}
-        currentStreak={currentStreak}
-        totalTasksCompleted={totalTasksCompleted}
-        onLanguageChange={handleLanguageChange}
-        onEditProfile={() => setEditProfileOpen(true)}
-        onSignOut={handleSignOut}
-      />
-
-      <EditProfileModal
-        t={t}
-        profile={{ ...profile, name: profileName, preferredLanguage: language }}
-        open={editProfileOpen}
-        onClose={() => setEditProfileOpen(false)}
-        onSaved={handleProfileSaved}
-      />
-
-      <main className="max-w-3xl mx-auto px-4 pt-24 pb-16">
-        {error && (
+    <div>
+      {error && (
           <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm flex items-center justify-between gap-3">
             <span>{error}</span>
             {taskInput && (
@@ -496,7 +419,6 @@ export default function AppShell({ profile, initialTasks }: AppShellProps) {
             )}
           </div>
         )}
-      </main>
     </div>
   );
 }

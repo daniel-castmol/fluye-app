@@ -21,14 +21,26 @@ export async function GET(request: Request) {
   }
 
   // Support ?status=archived|completed to fetch non-active tasks
+  // Support ?projectId= to filter by project
   const { searchParams } = new URL(request.url);
   const rawStatus = searchParams.get("status");
   const status =
     rawStatus === "archived" ? "archived" : rawStatus === "completed" ? "completed" : "active";
+  const projectId = searchParams.get("projectId");
+
+  const where: Record<string, unknown> = { profileId: profile.id, status };
+  if (projectId === "unassigned") {
+    where.projectId = null;
+  } else if (projectId) {
+    where.projectId = projectId;
+  }
 
   const tasks = await prisma.task.findMany({
-    where: { profileId: profile.id, status },
-    include: { steps: { orderBy: { order: "asc" } } },
+    where,
+    include: {
+      steps: { orderBy: { order: "asc" } },
+      project: { select: { id: true, name: true, emoji: true, color: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 

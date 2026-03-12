@@ -26,10 +26,26 @@ export interface TaskStep {
   durationEstimate: string | null;
 }
 
+export interface Project {
+  id: string;
+  profileId: string;
+  name: string;
+  emoji: string;
+  color: string;
+  description: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { tasks: number };
+  tasks?: Task[];
+}
+
 export interface Task {
   id: string;
   // profileId references UserProfile.id (NOT Supabase auth user ID)
   profileId: string;
+  projectId: string | null;
+  project?: Pick<Project, "id" | "name" | "emoji" | "color"> | null;
   originalText: string;
   clarification: string | null;
   status: string;

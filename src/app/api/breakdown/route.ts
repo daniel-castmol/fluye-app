@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { taskInput, questions, answers, skipClarification, language: bodyLanguage } = body;
+  const { taskInput, questions, answers, skipClarification, language: bodyLanguage, projectId } = body;
 
   if (!taskInput || typeof taskInput !== "string" || taskInput.length > 2000) {
     return NextResponse.json({ error: "Invalid task input" }, { status: 400 });
@@ -203,6 +203,7 @@ Reglas:
           const created = await prisma.task.create({
             data: {
               profileId: profile.id,
+              projectId: projectId || null,
               originalText: task.original,
               clarification: JSON.stringify({
                 context: task.context,
