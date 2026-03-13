@@ -44,16 +44,30 @@
 5. Spanish accent bug fix — Gemini structured output mangling accents, fixed via explicit prompt instructions
 6. Backlog organized with user feedback: Notion integration, free-flow context, "go deeper" prompt, pomodoro, personal dev dashboard
 
+## Session 4 (2026-03-12)
+1. Sprint 3 planned — V2 architecture: from one-shot task tool to ADHD daily companion
+2. Sub-Sprint 3A implemented (Foundation):
+   - Project model + Task.projectId in Prisma schema
+   - SQL migration applied: `sql/sprint3a-projects.sql`
+   - Dashboard page with stats, project cards, recent activity
+   - Collapsible sidebar with project list + mobile hamburger
+   - App layout refactor: shared shell (Sidebar + Navbar + AppContext provider)
+   - Project CRUD API routes (GET/POST /api/projects, GET/PATCH/DELETE /api/projects/[id])
+   - Dashboard stats API (GET /api/dashboard)
+   - Project detail view with scoped task breakdown
+   - Legacy AppShell preserved at /app/tasks
+   - i18n: all new strings in EN + ES
+   - 23 files changed, 1775 lines added
+3. Build passes with zero errors
+
 ## Current State
-- Branch: `sprint3-dev` (for next feature development)
+- Branch: `sprint3-dev` — Sprint 3A committed (`2441fe2`)
 - `main` is production — Sprint 1 + Sprint 2 shipped, deployed on Vercel
-- **Manual SQL migration required** before sharing works:
-  ```sql
-  ALTER TABLE "Task" ADD COLUMN "shareToken" TEXT UNIQUE;
-  ALTER TABLE "Task" ADD COLUMN "isShared" BOOLEAN NOT NULL DEFAULT false;
-  ```
-- User testing week in progress — collecting feedback from ~10 users
+- Sprint 3A needs to be pushed + merged to deploy
+- **Next up:** Sub-Sprint 3B (Day Planner + Time Tracking)
+- User testing in progress (~10 users)
 - Gemini free tier rate-limited (20 RPD). User considering Claude API swap.
+- **Known issue:** Can't test locally — OAuth redirects to Vercel domain
 - Todo list: `agents/claude/tasks/todo.md`
 
 ## Collaboration

@@ -30,26 +30,56 @@ From Phase 3 roadmap + Gemini's pending items.
 - [x] **Account deletion** -- Required for user trust, GDPR-friendly
 - [x] **Spanish accent bug** -- Gemini structured output mangling accents (ó→3), fixed via explicit prompt instructions
 
-## 5. Deferred (Post-Launch / Data-Driven)
+## 5. Sprint 3: V2 — From Task Tool to ADHD Daily Companion
+
+### Sub-Sprint 3A: Foundation (Projects + Dashboard + Navigation) ✅ COMPLETE
+- [x] **Project model** -- CRUD, emoji + color, Task.projectId (nullable)
+- [x] **Dashboard page** -- Stats row, project cards grid, recent activity
+- [x] **Sidebar navigation** -- Collapsible, project list, mobile hamburger
+- [x] **App layout refactor** -- Shared shell (Sidebar + Navbar + AppContext), proper routing
+- [x] **Project detail view** -- Scoped task breakdown within projects
+- [x] **Legacy flow preserved** -- AppShell at /app/tasks, existing tasks show as unassigned
+- [x] **i18n** -- All new strings in EN + ES
+- [x] **SQL migration** -- `sql/sprint3a-projects.sql` applied to Supabase
+
+### Sub-Sprint 3B: Day Loop (Planner + Time Tracking + Step Editing) — NEXT
+- [ ] **DayPlan model** -- id, profileId, date (unique per user+date), dailyWin, reflection, mood
+- [ ] **DayPlanStep model** -- join table linking steps to day plan, with order + time tracking
+- [ ] **TaskStep.userEditedText** -- Preserve user edits, keep original AI text
+- [ ] **Planner API** -- GET/PUT /api/planner, POST/DELETE/PATCH /api/planner/steps
+- [ ] **DayPlanner component** -- Daily win input, ordered step list, timer controls
+- [ ] **PlannerStepCard** -- Drag handle, checkbox, editable text, timer
+- [ ] **StepPicker modal** -- Select steps to plan, grouped by project
+- [ ] **MiniTimer** -- Inline MM:SS with start/pause
+- [ ] **EndOfDayView** -- Planned vs completed, reflection, mood selector, roll-over
+- [ ] **Sidebar updates** -- "Today's Plan" + "End of Day" links
+
+### Sub-Sprint 3C: Intelligence (Conversational Planning + Smart Estimates)
+- [ ] **ConversationMessage model** -- projectId, role, content, metadata
+- [ ] **StepFeedback model** -- reason for regeneration feedback
+- [ ] **Project chat** -- Multi-turn Gemini conversation within projects
+- [ ] **Regeneration feedback modal** -- "Too vague", "Too big", etc.
+- [ ] **Smart estimates** -- Calibrate from actual time data, show accuracy badges
+
+## 6. Deferred (Post-Launch / Data-Driven)
 Don't build until validated by real user feedback.
 
 - [ ] **Notion integration** -- Export/sync tasks to Notion. Multiple users requested.
 - [ ] **Free-flow context input** -- Let users provide more context for complex tasks (could be paid tier)
-- [ ] **"Go deeper" prompt generator** -- For tasks like cooking/research, generate a follow-up prompt with resources (ingredient lists, links, docs). Button: "Want to go deeper? Generate prompt"
-- [ ] **Pomodoro timer** -- Integrated timer for working through steps
-- [ ] **Personal development dashboard** -- Analyze completed tasks to surface skills/abilities the user is building (e.g. "project management", "coding", "self-care"). Visual progress over time, skill tags auto-detected from task content by AI. The dopamine loop beyond streaks.
+- [ ] **"Go deeper" prompt generator** -- For tasks like cooking/research, generate a follow-up prompt with resources
+- [ ] **Personal development dashboard** -- Analyze completed tasks to surface skills/abilities
 - [ ] Stripe integration (wait for 10 active users who'd pay)
 - [ ] Email recap / weekly summary
-- [ ] Sidebar nav (validate if users want it)
 - [ ] Categorized chips (Work/Home/Personal)
 - [ ] Brain dump / quick capture mode
 - [ ] Soundscapes toggle (brown noise / lo-fi)
-- [ ] Step-by-step reveal animation (one step at a time)
 - [ ] Test suite (Vitest + integration tests)
 - [ ] Extract hardcoded hex colors to Tailwind theme
 
 ## Execution Order
 
-**Sprint 1 (ship to users):** Items 1.1-1.5 (design) + 2.1-2.3 (features) + 3.2 (analytics)
-**Sprint 2 (growth):** Items 1.6-1.7 + 3.1 (task sharing) ✅ COMPLETE
-**Sprint 3 (iterate):** Based on user feedback from testing week
+**Sprint 1 (ship to users):** Design polish + core features + analytics ✅ COMPLETE
+**Sprint 2 (growth):** Progress rings + task sharing ✅ COMPLETE
+**Sprint 3A (foundation):** Projects, dashboard, sidebar, routing refactor ✅ COMPLETE
+**Sprint 3B (day loop):** Planner, time tracking, step editing — NEXT UP
+**Sprint 3C (intelligence):** Conversational planning, smart estimates
