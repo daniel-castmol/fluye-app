@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import useSWR from "swr";
 import type { Translations } from "@/lib/i18n";
 import type { DayPlan } from "@/types";
@@ -8,6 +8,8 @@ import { CalendarCheck, Plus, Loader2 } from "lucide-react";
 import PlannerStepCard from "./PlannerStepCard";
 import StepPicker from "./StepPicker";
 import EndOfDayView from "./EndOfDayView";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
+import { useApp } from "./AppContext";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -25,6 +27,7 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 // inline step editing, and per-step MiniTimer with auto-pause on complete.
 // ---------------------------------------------------------------------------
 export default function DayPlanner({ t }: DayPlannerProps) {
+  const { onActiveTimerChange } = useApp();
   // Today's date in YYYY-MM-DD format (local timezone)
   const today = new Date().toLocaleDateString("en-CA");
 
@@ -34,6 +37,13 @@ export default function DayPlanner({ t }: DayPlannerProps) {
     fetcher,
     { revalidateOnFocus: false }
   );
+
+  // -- Report active timer state to parent (sidebar indicator) ---------------
+  useEffect(() => {
+    if (!plan || !onActiveTimerChange) return;
+    const hasRunning = plan.steps.some((s) => s.timerStartedAt);
+    onActiveTimerChange(hasRunning);
+  }, [plan, onActiveTimerChange]);
 
   // -- Local state -----------------------------------------------------------
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -384,7 +394,10 @@ export default function DayPlanner({ t }: DayPlannerProps) {
           <h2 className="text-base font-semibold text-[#F8FAFC]">
             {t.planner.emptyTitle}
           </h2>
-          <p className="text-sm text-[#64748B]">{t.planner.emptySubtitle}</p>
+          <p className="text-sm text-[#64748B] inline-flex items-center gap-1">
+            {t.planner.emptySubtitle}
+            <HintTooltip text={t.hints.plannerEmpty} />
+          </p>
           <button
             type="button"
             onClick={() => setPickerOpen(true)}

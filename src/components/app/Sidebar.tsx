@@ -25,9 +25,10 @@ interface SidebarProps {
   t: Translations;
   projects: SidebarProject[];
   onNewProject: () => void;
+  hasActiveTimer?: boolean; // Pulsing green dot when a planner timer is running
 }
 
-export default function Sidebar({ t, projects, onNewProject }: SidebarProps) {
+export default function Sidebar({ t, projects, onNewProject, hasActiveTimer }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -112,6 +113,10 @@ export default function Sidebar({ t, projects, onNewProject }: SidebarProps) {
             >
               <item.icon className="w-4 h-4 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
+              {/* Pulsing green dot — indicates a timer is running in the planner */}
+              {!collapsed && item.href === "/app/planner" && hasActiveTimer && (
+                <span className="ml-auto flex h-2 w-2 rounded-full bg-[#86EFAC] animate-pulse" />
+              )}
             </Link>
           ))}
 

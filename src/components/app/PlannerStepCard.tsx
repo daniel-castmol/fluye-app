@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import MiniTimer from "./MiniTimer";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -144,6 +145,7 @@ export default function PlannerStepCard({
             <span className="flex-shrink-0 inline-flex items-center gap-1 text-[10px] text-[#64748B] bg-[#334155] px-1.5 py-0.5 rounded-full">
               <Clock className="w-3 h-3" />
               {ts.durationEstimate}
+              <HintTooltip text={t.hints.timeEstimate} />
             </span>
           )}
         </div>

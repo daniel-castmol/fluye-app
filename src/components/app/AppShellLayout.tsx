@@ -34,6 +34,10 @@ export default function AppShellLayout({
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [projects, setProjects] = useState(initialProjects);
 
+  // Timer state — DayPlanner reports whether any timer is running,
+  // and the Sidebar shows a pulsing green dot next to "Today's Plan"
+  const [hasActiveTimer, setHasActiveTimer] = useState(false);
+
   const [totalTasksCompleted] = useState(profile.totalTasksCompleted);
   const [currentStreak] = useState(profile.currentStreak);
 
@@ -85,6 +89,7 @@ export default function AppShellLayout({
       language,
       t,
       onProjectsChange: handleProjectsChange,
+      onActiveTimerChange: setHasActiveTimer,
     }),
     [profile, profileName, language, t, handleProjectsChange]
   );
@@ -96,6 +101,7 @@ export default function AppShellLayout({
           t={t}
           projects={projects}
           onNewProject={() => setCreateProjectOpen(true)}
+          hasActiveTimer={hasActiveTimer}
         />
 
         <div className="lg:pl-64 transition-all duration-200">

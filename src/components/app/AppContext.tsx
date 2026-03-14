@@ -10,6 +10,7 @@ interface AppContextValue {
   language: Language;
   t: Translations;
   onProjectsChange: (projects: { id: string; name: string; emoji: string; color: string }[]) => void;
+  onActiveTimerChange?: (active: boolean) => void; // Report timer state to sidebar
 }
 
 const AppContext = createContext<AppContextValue | null>(null);

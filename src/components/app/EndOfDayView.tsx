@@ -11,6 +11,7 @@ import type { Translations } from "@/lib/i18n";
 import type { DayPlan } from "@/types";
 import { formatTime } from "@/hooks/useTimer";
 import { X } from "lucide-react";
+import { HintTooltip } from "@/components/ui/hint-tooltip";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -133,8 +134,9 @@ export default function EndOfDayView({
 
         {/* ---- Daily Win input ---- */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-[#F8FAFC]">
+          <label className="flex items-center gap-1 text-sm font-medium text-[#F8FAFC] mb-1.5">
             {t.endOfDay.dailyWinLabel}
+            <HintTooltip text={t.hints.dailyWin} />
           </label>
           <input
             type="text"
@@ -147,8 +149,9 @@ export default function EndOfDayView({
 
         {/* ---- Mood selector: 5 emoji buttons ---- */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-[#F8FAFC]">
+          <label className="flex items-center gap-1 text-sm font-medium text-[#F8FAFC] mb-1.5">
             {t.endOfDay.moodLabel}
+            <HintTooltip text={t.hints.moodSelector} />
           </label>
           <div className="flex gap-2">
             {MOOD_OPTIONS.map(({ value, emoji }) => (
