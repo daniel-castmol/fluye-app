@@ -29,6 +29,7 @@ export function useTimer({ timeSpentSeconds, timerStartedAt }: UseTimerProps) {
   const isRunning = !!timerStartedAt;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Timer pattern: interval-driven state updates are intentional */
   useEffect(() => {
     if (timerStartedAt) {
       const startTime = new Date(timerStartedAt).getTime();
@@ -50,6 +51,7 @@ export function useTimer({ timeSpentSeconds, timerStartedAt }: UseTimerProps) {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
   }, [timerStartedAt, timeSpentSeconds]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return { elapsed, isRunning };
 }

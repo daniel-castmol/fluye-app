@@ -89,6 +89,7 @@ export default function StepPicker({
   const [activeFilter, setActiveFilter] = useState<string | null>(null); // null = "All"
 
   // -- Fetch available steps when modal opens --------------------------------
+  /* eslint-disable react-hooks/set-state-in-effect -- Reset+fetch pattern on modal open is intentional */
   useEffect(() => {
     if (!open) return;
 
@@ -113,6 +114,7 @@ export default function StepPicker({
       cancelled = true;
     };
   }, [open, date]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // -- Derived data ----------------------------------------------------------
 

@@ -60,11 +60,13 @@ export default function EndOfDayView({
   const incompleteCount = totalCount - completedCount;
 
   // Total time tracked — includes elapsed time from any currently running timer
+  // We capture "now" once at mount so the render stays pure (React Compiler rule)
+  const [mountTime] = useState(() => Date.now());
   const totalSeconds = dayPlan.steps.reduce((acc, s) => {
     let elapsed = s.timeSpentSeconds;
     if (s.timerStartedAt) {
       elapsed += Math.floor(
-        (Date.now() - new Date(s.timerStartedAt).getTime()) / 1000
+        (mountTime - new Date(s.timerStartedAt).getTime()) / 1000
       );
     }
     return acc + elapsed;

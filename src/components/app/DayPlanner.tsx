@@ -272,7 +272,7 @@ export default function DayPlanner({ t }: DayPlannerProps) {
 
   /** Save daily win text on blur */
   const handleDailyWinBlur = useCallback(async () => {
-    if (!plan?.id) return;
+    if (!plan) return;
 
     await fetch("/api/planner", {
       method: "PATCH",
@@ -281,7 +281,7 @@ export default function DayPlanner({ t }: DayPlannerProps) {
     });
 
     mutate();
-  }, [plan?.id, displayDailyWin, mutate]);
+  }, [plan, displayDailyWin, mutate]);
 
   /** Save end-of-day reflection data and optionally roll over incomplete steps */
   const handleEndOfDaySave = useCallback(
