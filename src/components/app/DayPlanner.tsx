@@ -20,8 +20,8 @@ const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 // ---------------------------------------------------------------------------
 // DayPlanner — the main day planner component
-// Shows today's plan with step list, completion, reorder, and daily win.
-// Slice 1: no timer callbacks (those come in Task 15).
+// Shows today's plan with step list, completion, reorder, daily win,
+// inline step editing, and per-step MiniTimer with auto-pause on complete.
 // ---------------------------------------------------------------------------
 export default function DayPlanner({ t }: DayPlannerProps) {
   // Today's date in YYYY-MM-DD format (local timezone)
@@ -75,9 +75,66 @@ export default function DayPlanner({ t }: DayPlannerProps) {
     [today, mutate]
   );
 
+  // ---------------------------------------------------------------------------
+  // Timer callbacks — start/pause timers on individual planner steps
+  // ---------------------------------------------------------------------------
+
+  /** Start a timer — the API auto-pauses any other running timer */
+  const handleTimerStart = useCallback(
+    async (dayPlanStepId: string) => {
+      await fetch(`/api/planner/steps/${dayPlanStepId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start" }),
+      });
+      mutate();
+    },
+    [mutate]
+  );
+
+  /** Pause the running timer — finalizes elapsed time on server */
+  const handleTimerPause = useCallback(
+    async (dayPlanStepId: string) => {
+      await fetch(`/api/planner/steps/${dayPlanStepId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "pause" }),
+      });
+      mutate();
+    },
+    [mutate]
+  );
+
+  /** Save edited step text (or null to reset to AI original) */
+  const handleEditStep = useCallback(
+    async (taskId: string, stepId: string, text: string | null) => {
+      await fetch(`/api/tasks/${taskId}/steps/${stepId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEditedText: text }),
+      });
+      mutate();
+    },
+    [mutate]
+  );
+
   /** Toggle step completion with optimistic update */
   const handleComplete = useCallback(
     async (taskId: string, stepId: string, completed: boolean) => {
+      // Auto-pause timer if completing a step with a running timer
+      if (completed && plan) {
+        const runningStep = plan.steps.find(
+          (s) => s.taskStepId === stepId && s.timerStartedAt
+        );
+        if (runningStep) {
+          await fetch(`/api/planner/steps/${runningStep.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "pause" }),
+          });
+        }
+      }
+
       // Optimistic update: toggle the step's completed state in local data
       mutate(
         (current) => {
@@ -113,7 +170,7 @@ export default function DayPlanner({ t }: DayPlannerProps) {
       // Revalidate to sync with server state
       mutate();
     },
-    [mutate]
+    [plan, mutate]
   );
 
   /** Remove a step from the day plan with optimistic update */
@@ -289,6 +346,9 @@ export default function DayPlanner({ t }: DayPlannerProps) {
                 onMoveUp={(id) => handleReorder(id, "up")}
                 onMoveDown={(id) => handleReorder(id, "down")}
                 onRemove={handleRemove}
+                onTimerStart={handleTimerStart}
+                onTimerPause={handleTimerPause}
+                onEditStep={handleEditStep}
               />
             ))}
           </div>
@@ -314,6 +374,9 @@ export default function DayPlanner({ t }: DayPlannerProps) {
                   onMoveUp={() => {}}
                   onMoveDown={() => {}}
                   onRemove={handleRemove}
+                  onTimerStart={handleTimerStart}
+                  onTimerPause={handleTimerPause}
+                  onEditStep={handleEditStep}
                 />
               ))}
             </div>
