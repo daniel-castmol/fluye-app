@@ -96,6 +96,7 @@ export default function LandingPage() {
             </Link>
             <button
               type="button"
+              onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
               className="px-8 py-4 rounded-full border border-[#334155] text-[#F8FAFC] font-semibold text-lg hover:bg-[#334155]/50 transition-all duration-300 backdrop-blur-sm"
             >
               {t.landing.ctaSecondary}
@@ -132,6 +133,37 @@ export default function LandingPage() {
               <h3 className="text-[#F8FAFC] font-bold text-lg mb-2">{t.landing.feature3Title}</h3>
               <p className="text-[#F8FAFC]/60 text-sm leading-relaxed">{t.landing.feature3Desc}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it Works — 3-step explanation + video placeholder */}
+      <section id="how-it-works" className="relative py-20 px-4 border-t border-[#334155]/50">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-[#F8FAFC] mb-16">
+            {t.howItWorks.title}
+          </h2>
+
+          {/* Three numbered steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {[
+              { num: "1", title: t.howItWorks.step1Title, desc: t.howItWorks.step1Desc },
+              { num: "2", title: t.howItWorks.step2Title, desc: t.howItWorks.step2Desc },
+              { num: "3", title: t.howItWorks.step3Title, desc: t.howItWorks.step3Desc },
+            ].map((step) => (
+              <div key={step.num} className="flex flex-col items-center md:items-start text-center md:text-left">
+                <div className="h-10 w-10 rounded-full bg-[#86EFAC]/10 border border-[#86EFAC]/20 flex items-center justify-center text-[#86EFAC] font-bold text-sm mb-4">
+                  {step.num}
+                </div>
+                <h3 className="text-[#F8FAFC] font-bold text-lg mb-2">{step.title}</h3>
+                <p className="text-[#F8FAFC]/60 text-sm leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Video placeholder — user will record and replace later */}
+          <div className="max-w-3xl mx-auto rounded-xl border border-[#334155] bg-[#1E293B]/30 aspect-video flex items-center justify-center">
+            <p className="text-[#64748B] text-sm">{t.howItWorks.videoPlaceholder}</p>
           </div>
         </div>
       </section>

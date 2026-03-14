@@ -8,6 +8,7 @@ import type { Translations } from "@/lib/i18n";
 import {
   LayoutDashboard,
   Zap,
+  CalendarCheck,
   Plus,
   PanelLeftClose,
   PanelLeft,
@@ -42,6 +43,12 @@ export default function Sidebar({ t, projects, onNewProject }: SidebarProps) {
       label: t.sidebar.quickTask,
       icon: Zap,
       active: pathname === "/app/tasks",
+    },
+    {
+      href: "/app/planner",
+      label: t.sidebar.planner,
+      icon: CalendarCheck,
+      active: pathname === "/app/planner",
     },
   ];
 
