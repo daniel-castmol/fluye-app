@@ -13,15 +13,16 @@
 -- DayPlan: one entry per user per date
 -- This is the "container" for a user's daily plan. It holds the date,
 -- plus end-of-day reflection data (daily win, mood, reflection text).
+-- NOTE: Using TEXT for IDs to match existing table conventions (UserProfile, Task, TaskStep all use TEXT)
 CREATE TABLE IF NOT EXISTS "DayPlan" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "profileId" UUID NOT NULL REFERENCES "UserProfile"("id") ON DELETE CASCADE,
+  "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  "profileId" TEXT NOT NULL REFERENCES "UserProfile"("id") ON DELETE CASCADE,
   "date" DATE NOT NULL,
   "dailyWin" TEXT,        -- "One thing you're proud of today"
   "reflection" TEXT,      -- Free-text end-of-day note
   "mood" INTEGER,         -- 1-5 scale (maps to emojis in UI: 😣😕😐🙂😄)
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   -- Each user can only have one plan per date
   CONSTRAINT "DayPlan_profileId_date_key" UNIQUE ("profileId", "date")
@@ -34,14 +35,14 @@ CREATE INDEX "DayPlan_profileId_date_idx" ON "DayPlan"("profileId", "date");
 -- Each row = "this step is part of today's plan"
 -- Also tracks time spent (via timerStartedAt + timeSpentSeconds pattern)
 CREATE TABLE IF NOT EXISTS "DayPlanStep" (
-  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  "dayPlanId" UUID NOT NULL REFERENCES "DayPlan"("id") ON DELETE CASCADE,
-  "taskStepId" UUID NOT NULL REFERENCES "TaskStep"("id") ON DELETE CASCADE,
+  "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  "dayPlanId" TEXT NOT NULL REFERENCES "DayPlan"("id") ON DELETE CASCADE,
+  "taskStepId" TEXT NOT NULL REFERENCES "TaskStep"("id") ON DELETE CASCADE,
   "sortOrder" INTEGER NOT NULL,           -- Display order in the planner UI
   "timeSpentSeconds" INTEGER NOT NULL DEFAULT 0,  -- Accumulated time from paused sessions
-  "timerStartedAt" TIMESTAMPTZ,           -- Non-null = timer is currently running
-  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
+  "timerStartedAt" TIMESTAMP(3),          -- Non-null = timer is currently running
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Fast lookup: get all steps for a plan, ordered
