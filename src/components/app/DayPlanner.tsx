@@ -7,6 +7,7 @@ import type { DayPlan } from "@/types";
 import { CalendarCheck, Plus, Loader2 } from "lucide-react";
 import PlannerStepCard from "./PlannerStepCard";
 import StepPicker from "./StepPicker";
+import EndOfDayView from "./EndOfDayView";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -36,6 +37,7 @@ export default function DayPlanner({ t }: DayPlannerProps) {
 
   // -- Local state -----------------------------------------------------------
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [endOfDayOpen, setEndOfDayOpen] = useState(false);
   const [dailyWin, setDailyWin] = useState<string | undefined>(undefined);
 
   // Initialize dailyWin from fetched plan (only on first load)
@@ -271,6 +273,54 @@ export default function DayPlanner({ t }: DayPlannerProps) {
     mutate();
   }, [plan?.id, displayDailyWin, mutate]);
 
+  /** Save end-of-day reflection data and optionally roll over incomplete steps */
+  const handleEndOfDaySave = useCallback(
+    async (data: {
+      dailyWin: string | null;
+      reflection: string | null;
+      mood: number | null;
+      rollover: boolean;
+    }) => {
+      const { rollover, ...planData } = data;
+
+      // Save reflection data (dailyWin, reflection, mood) to the day plan
+      await fetch("/api/planner", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...planData, date: today }),
+      });
+
+      // Roll over incomplete steps to tomorrow if requested
+      if (rollover && plan) {
+        const incompleteStepIds = plan.steps
+          .filter((s) => !s.taskStep.completed)
+          .map((s) => s.taskStepId);
+
+        if (incompleteStepIds.length > 0) {
+          // Calculate tomorrow's date string (YYYY-MM-DD)
+          const tomorrow = new Date(today + "T12:00:00");
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tomorrowStr = tomorrow.toLocaleDateString("en-CA");
+
+          await fetch("/api/planner/steps", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskStepIds: incompleteStepIds,
+              date: tomorrowStr,
+            }),
+          });
+        }
+      }
+
+      // Sync local dailyWin state with what was saved
+      setDailyWin(data.dailyWin ?? "");
+      setEndOfDayOpen(false);
+      mutate();
+    },
+    [today, plan, mutate]
+  );
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -288,14 +338,27 @@ export default function DayPlanner({ t }: DayPlannerProps) {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium bg-[#86EFAC] text-[#0F172A] hover:bg-[#86EFAC]/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t.planner.addSteps}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Wrap up button — only shown when plan has steps */}
+          {plan && plan.steps.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setEndOfDayOpen(true)}
+              className="px-4 py-2 rounded-lg bg-[#334155]/50 text-[#F8FAFC] border border-[#334155] hover:bg-[#334155] text-sm font-medium transition-colors"
+            >
+              {t.planner.wrapUp}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium bg-[#86EFAC] text-[#0F172A] hover:bg-[#86EFAC]/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t.planner.addSteps}
+          </button>
+        </div>
       </div>
 
       {/* ---- Daily Win input ---- */}
@@ -392,6 +455,16 @@ export default function DayPlanner({ t }: DayPlannerProps) {
         onClose={() => setPickerOpen(false)}
         onAdd={handleAddSteps}
       />
+
+      {/* ---- EndOfDayView modal — wrap up the day with stats & reflection ---- */}
+      {endOfDayOpen && plan && (
+        <EndOfDayView
+          t={t}
+          dayPlan={plan}
+          onSave={handleEndOfDaySave}
+          onClose={() => setEndOfDayOpen(false)}
+        />
+      )}
     </div>
   );
 }
