@@ -17,9 +17,13 @@ export async function PATCH(
 
   const { taskId, stepId } = await params;
   const body = await request.json();
-  const { completed } = body;
+  const { completed, userEditedText } = body;
 
-  if (typeof completed !== "boolean") {
+  // Support both completion toggling and step text editing
+  const hasCompleted = typeof completed === "boolean";
+  const hasEditedText = "userEditedText" in body;
+
+  if (!hasCompleted && !hasEditedText) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
@@ -37,6 +41,15 @@ export async function PATCH(
 
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
+  }
+
+  // Handle userEditedText update (independent of completion)
+  if (hasEditedText && !hasCompleted) {
+    const step = await prisma.taskStep.update({
+      where: { id: stepId },
+      data: { userEditedText: userEditedText ?? null },
+    });
+    return NextResponse.json({ step });
   }
 
   const step = await prisma.taskStep.update({
