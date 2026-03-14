@@ -24,6 +24,7 @@ export interface TaskStep {
   completed: boolean;
   completedAt: string | null;
   durationEstimate: string | null;
+  userEditedText: string | null;
 }
 
 export interface Project {
@@ -74,4 +75,53 @@ export interface BreakdownTask {
 
 export interface BreakdownResponse {
   tasks: BreakdownTask[];
+}
+
+// Day Planner — one plan per user per day
+export interface DayPlan {
+  id: string;
+  profileId: string;
+  date: string;
+  dailyWin: string | null;
+  reflection: string | null;
+  mood: number | null;
+  createdAt: string;
+  updatedAt: string;
+  steps: DayPlanStepWithDetails[];
+}
+
+// A single step assigned to a day plan
+export interface DayPlanStep {
+  id: string;
+  dayPlanId: string;
+  taskStepId: string;
+  sortOrder: number;
+  timeSpentSeconds: number;
+  timerStartedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// DayPlanStep with nested task/project info for rendering
+export interface DayPlanStepWithDetails extends DayPlanStep {
+  taskStep: TaskStep & {
+    task: Pick<Task, "id" | "originalText" | "projectId"> & {
+      project: Pick<Project, "id" | "name" | "emoji" | "color"> | null;
+    };
+  };
+}
+
+// Step available to be added to a day plan (from incomplete tasks)
+export interface AvailableStep {
+  id: string;
+  text: string;
+  userEditedText: string | null;
+  order: number;
+  durationEstimate: string | null;
+  completed: boolean;
+  taskId: string;
+  taskName: string;
+  projectId: string | null;
+  project: Pick<Project, "id" | "name" | "emoji" | "color"> | null;
+  fromYesterday: boolean;
 }

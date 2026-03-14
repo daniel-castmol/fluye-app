@@ -42,6 +42,7 @@ model UserProfile {
 
   tasks        Task[]
   ownedProjects Project[]
+  dayPlans     DayPlan[]
 }
 
 model Project {
@@ -103,8 +104,48 @@ model TaskStep {
   completed   Boolean   @default(false)
   completedAt DateTime?
 
+  // User-edited step text (Day Planner customization)
+  userEditedText String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  dayPlanSteps DayPlanStep[]
+
   @@index([taskId, order])
+}
+
+// Day Planner — one plan per user per day
+model DayPlan {
+  id         String   @id @default(uuid())
+  profileId  String
+  date       DateTime @db.Date
+  dailyWin   String?
+  reflection String?
+  mood       Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  profile    UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  steps      DayPlanStep[]
+
+  @@unique([profileId, date])
+  @@index([profileId, date])
+}
+
+// Individual step assigned to a day plan (links to TaskStep)
+model DayPlanStep {
+  id               String    @id @default(uuid())
+  dayPlanId        String
+  taskStepId       String
+  sortOrder        Int
+  timeSpentSeconds Int       @default(0)
+  timerStartedAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  dayPlan          DayPlan   @relation(fields: [dayPlanId], references: [id], onDelete: Cascade)
+  taskStep         TaskStep  @relation(fields: [taskStepId], references: [id], onDelete: Cascade)
+
+  @@index([dayPlanId, sortOrder])
 }
