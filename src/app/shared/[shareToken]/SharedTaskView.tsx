@@ -15,7 +15,7 @@ export default function SharedTaskView({ task, ownerName }: SharedTaskViewProps)
   const progress = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-[#F8FAFC]">
+    <main className="min-h-screen bg-[#0F172A] text-[#F8FAFC]">
       <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
         {/* Header */}
         <div className="mb-8">
@@ -98,10 +98,10 @@ export default function SharedTaskView({ task, ownerName }: SharedTaskViewProps)
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#86EFAC] text-[#0F172A] font-semibold text-sm hover:bg-[#86EFAC]/90 transition-colors"
           >
             Kill the paralysis. Try Fluye free
-            <span aria-hidden="true">&rarr;</span>
+            <span className="select-none" role="presentation">&rarr;</span>
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
