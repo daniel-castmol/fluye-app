@@ -42,17 +42,20 @@ From Phase 3 roadmap + Gemini's pending items.
 - [x] **i18n** -- All new strings in EN + ES
 - [x] **SQL migration** -- `sql/sprint3a-projects.sql` applied to Supabase
 
-### Sub-Sprint 3B: Day Loop (Planner + Time Tracking + Step Editing) — NEXT
-- [ ] **DayPlan model** -- id, profileId, date (unique per user+date), dailyWin, reflection, mood
-- [ ] **DayPlanStep model** -- join table linking steps to day plan, with order + time tracking
-- [ ] **TaskStep.userEditedText** -- Preserve user edits, keep original AI text
-- [ ] **Planner API** -- GET/PUT /api/planner, POST/DELETE/PATCH /api/planner/steps
-- [ ] **DayPlanner component** -- Daily win input, ordered step list, timer controls
-- [ ] **PlannerStepCard** -- Drag handle, checkbox, editable text, timer
-- [ ] **StepPicker modal** -- Select steps to plan, grouped by project
-- [ ] **MiniTimer** -- Inline MM:SS with start/pause
-- [ ] **EndOfDayView** -- Planned vs completed, reflection, mood selector, roll-over
-- [ ] **Sidebar updates** -- "Today's Plan" + "End of Day" links
+### Sub-Sprint 3B: Day Loop (Planner + Time Tracking + Step Editing) ✅ COMPLETE
+- [x] **DayPlan model** -- id, profileId, date (unique per user+date), dailyWin, reflection, mood
+- [x] **DayPlanStep model** -- join table linking steps to day plan, with order + time tracking
+- [x] **TaskStep.userEditedText** -- Preserve user edits, keep original AI text
+- [x] **Planner API** -- GET/PATCH /api/planner, POST/DELETE/PATCH /api/planner/steps, GET /api/planner/available
+- [x] **DayPlanner component** -- Daily win input, ordered step list, timer controls
+- [x] **PlannerStepCard** -- Checkbox, editable text, timer, reorder arrows
+- [x] **StepPicker modal** -- Select steps to plan, flat list with project filter chips, yesterday rollover
+- [x] **MiniTimer** -- Inline MM:SS with start/pause, auto-pause siblings
+- [x] **EndOfDayView** -- Planned vs completed, reflection, mood selector, roll-over checkbox
+- [x] **Sidebar updates** -- "Today's Plan" link with active timer indicator
+- [x] **HintTooltip component** -- Contextual (?) help tooltips on time estimates, daily win, mood, planner
+- [x] **Landing page "How it Works"** -- 3-step section + video placeholder + scroll CTA
+- [x] **a11y fixes** -- SharedTaskView main landmark + aria-hidden fix
 
 ### Sub-Sprint 3C: Intelligence (Conversational Planning + Smart Estimates)
 - [ ] **ConversationMessage model** -- projectId, role, content, metadata
@@ -81,5 +84,5 @@ Don't build until validated by real user feedback.
 **Sprint 1 (ship to users):** Design polish + core features + analytics ✅ COMPLETE
 **Sprint 2 (growth):** Progress rings + task sharing ✅ COMPLETE
 **Sprint 3A (foundation):** Projects, dashboard, sidebar, routing refactor ✅ COMPLETE
-**Sprint 3B (day loop):** Planner, time tracking, step editing — NEXT UP
+**Sprint 3B (day loop):** Planner, time tracking, step editing, user guidance ✅ COMPLETE
 **Sprint 3C (intelligence):** Conversational planning, smart estimates
